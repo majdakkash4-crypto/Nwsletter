@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dispatch — Newsletter Manager</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400&family=DM+Mono:wght@300;400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --ink:     #0e0d0c;
+      --paper:   #f5f0e8;
+      --cream:   #ede7d4;
+      --accent:  #c84b2f;
+      --muted:   #8a8070;
+      --border:  #d4cbb8;
+      --success: #2d7a4f;
+      --warn:    #b87a00;
+      --mono:    'DM Mono', monospace;
+      --serif:   'Playfair Display', serif;
+      --sans:    'DM Sans', sans-serif;
+    }
+    body { background: var(--paper); color: var(--ink); font-family: var(--sans); min-height: 100vh; }
+
+    /* AUTH */
+    #authWrap { min-height: 100vh; display: grid; grid-template-columns: 1fr 1fr; }
+    .auth-left {
+      background: var(--ink); display: flex; flex-direction: column;
+      justify-content: space-between; padding: 4rem; position: relative; overflow: hidden;
+    }
+    .auth-left::before {
+      content:''; position:absolute; inset:0;
+      background: repeating-linear-gradient(-45deg,transparent,transparent 40px,rgba(255,255,255,0.015) 40px,rgba(255,255,255,0.015) 80px);
+    }
+    .auth-brand { font-family: var(--serif); font-size: 3rem; font-weight: 900; color: var(--paper); letter-spacing: -2px; line-height: 1; margin-bottom: 1rem; }
+    .auth-brand span { color: var(--accent); }
+    .auth-tagline { color: rgba(245,240,232,0.5); font-size: 0.88rem; line-height: 1.7; max-width: 300px; }
+    .auth-features { margin-top: 2.5rem; display: flex; flex-direction: column; gap: 1rem; }
+    .auth-feat { display: flex; align-items: center; gap: 0.8rem; color: rgba(245,240,232,0.7); font-size: 0.8rem; }
+    .auth-feat-icon { width: 30px; height: 30px; background: rgba(200,75,47,0.2); border-radius: 3px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+    .dsgvo-badge { display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(45,122,79,0.2); border: 1px solid rgba(45,122,79,0.4); color: #6fcf97; padding: 0.5rem 0.9rem; border-radius: 3px; font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1.5px; width: fit-content; }
+    .auth-right { display: flex; align-items: center; justify-content: center; padding: 3rem 2rem; overflow-y: auto; }
+    .auth-card { width: 100%; max-width: 420px; animation: fadeUp 0.4s ease both; }
+    .auth-title { font-family: var(--serif); font-size: 1.9rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .auth-sub { color: var(--muted); font-size: 0.82rem; margin-bottom: 1.8rem; }
+    .auth-sub a { color: var(--accent); cursor: pointer; text-decoration: underline; }
+    .form-group { margin-bottom: 1rem; }
+    .field-label { display: block; font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 2px; color: var(--muted); margin-bottom: 0.3rem; }
+    .field-input { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 3px; padding: 0.68rem 0.9rem; font-family: var(--sans); font-size: 0.87rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
+    .field-input:focus { border-color: var(--ink); }
+    .field-input.err { border-color: var(--accent); }
+    .field-err { font-family: var(--mono); font-size: 0.63rem; color: var(--accent); margin-top: 0.25rem; display: none; }
+    .field-err.show { display: block; }
+    .consent-block { background: var(--cream); border: 1.5px solid var(--border); border-radius: 4px; padding: 0.9rem 1rem; margin-bottom: 1rem; }
+    .consent-title { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2px; color: var(--warn); margin-bottom: 0.65rem; }
+    .consent-row { display: flex; align-items: flex-start; gap: 0.55rem; margin-bottom: 0.55rem; font-size: 0.77rem; line-height: 1.5; }
+    .consent-row:last-child { margin-bottom: 0; }
+    .consent-row input[type="checkbox"] { width: 15px; height: 15px; flex-shrink: 0; margin-top: 2px; accent-color: var(--accent); }
+    .consent-row a { color: var(--accent); cursor: pointer; }
+    .btn-primary { width: 100%; background: var(--ink); color: var(--paper); border: none; padding: 0.82rem; font-family: var(--mono); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; margin-top: 0.4rem; }
+    .btn-primary:hover { background: var(--accent); }
+    .divider { display: flex; align-items: center; gap: 1rem; margin: 1.2rem 0; color: var(--muted); font-family: var(--mono); font-size: 0.62rem; }
+    .divider::before, .divider::after { content:''; flex:1; height:1px; background: var(--border); }
+
+    /* APP */
+    #appWrap { display: none; flex-direction: column; min-height: 100vh; }
+    header { border-bottom: 2px solid var(--ink); padding: 0.9rem 2rem; display: flex; align-items: center; justify-content: space-between; background: var(--paper); position: sticky; top: 0; z-index: 100; }
+    .logo { font-family: var(--serif); font-size: 1.75rem; font-weight: 900; letter-spacing: -1px; }
+    .logo span { color: var(--accent); }
+    .header-right { display: flex; align-items: center; gap: 1rem; }
+    .user-chip { display: flex; align-items: center; gap: 0.5rem; font-family: var(--mono); font-size: 0.65rem; color: var(--muted); }
+    .user-avatar { width: 28px; height: 28px; border-radius: 50%; background: var(--ink); color: var(--paper); display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 600; }
+    .btn-logout { font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 1.5px; background: none; border: 1.5px solid var(--border); color: var(--muted); padding: 0.32rem 0.65rem; border-radius: 3px; cursor: pointer; transition: all 0.15s; }
+    .btn-logout:hover { border-color: var(--accent); color: var(--accent); }
+    .app { display: grid; grid-template-columns: 290px 1fr; flex: 1; }
+    .sidebar { border-right: 2px solid var(--ink); display: flex; flex-direction: column; background: var(--cream); min-height: calc(100vh - 62px); }
+    .sidebar-section { padding: 1rem 1.2rem; border-bottom: 1px solid var(--border); }
+    .sidebar-label { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 2.5px; color: var(--muted); margin-bottom: 0.65rem; }
+    .drop-zone { border: 2px dashed var(--border); border-radius: 4px; padding: 1rem; text-align: center; cursor: pointer; transition: all 0.2s; font-size: 0.78rem; color: var(--muted); }
+    .drop-zone:hover, .drop-zone.dragover { border-color: var(--accent); color: var(--accent); background: rgba(200,75,47,0.04); }
+    .drop-zone input { display: none; }
+    .drop-zone .icon { font-size: 1.4rem; margin-bottom: 0.3rem; display: block; }
+    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+    .stat-box { background: var(--paper); border: 1px solid var(--border); border-radius: 3px; padding: 0.5rem 0.7rem; }
+    .stat-num { font-family: var(--serif); font-size: 1.35rem; font-weight: 700; }
+    .stat-label { font-family: var(--mono); font-size: 0.56rem; color: var(--muted); text-transform: uppercase; letter-spacing: 1px; }
+    .search-bar { padding: 0.65rem 1.2rem; border-bottom: 1px solid var(--border); }
+    .search-bar input { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 3px; padding: 0.38rem 0.6rem; font-size: 0.78rem; font-family: var(--sans); outline: none; color: var(--ink); }
+    .search-bar input:focus { border-color: var(--ink); }
+    .sub-list { flex: 1; overflow-y: auto; }
+    .sub-item { padding: 0.55rem 1.2rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.5rem; font-size: 0.78rem; }
+    .sub-avatar { width: 24px; height: 24px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; font-family: var(--mono); font-size: 0.65rem; flex-shrink: 0; }
+    .sub-info { flex: 1; min-width: 0; }
+    .sub-name { font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-email { font-family: var(--mono); font-size: 0.6rem; color: var(--muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .sub-tag { font-family: var(--mono); font-size: 0.56rem; background: var(--border); padding: 0.1rem 0.3rem; border-radius: 2px; white-space: nowrap; }
+    .optin-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .optin-dot.yes { background: var(--success); }
+    .optin-dot.no  { background: var(--accent); }
+    .main { display: flex; flex-direction: column; }
+    .tabs { display: flex; border-bottom: 2px solid var(--ink); background: var(--paper); }
+    .tab { padding: 0.82rem 1.3rem; font-family: var(--mono); font-size: 0.65rem; text-transform: uppercase; letter-spacing: 1.5px; cursor: pointer; border-right: 1px solid var(--border); transition: background 0.15s; color: var(--muted); }
+    .tab.active { background: var(--ink); color: var(--paper); }
+    .tab:hover:not(.active) { background: var(--cream); color: var(--ink); }
+    .panel { display: none; flex: 1; overflow-y: auto; padding: 1.6rem 1.8rem; }
+    .panel.active { display: flex; flex-direction: column; }
+    .compose-grid { display: grid; grid-template-columns: 1fr 320px; gap: 1.8rem; flex: 1; }
+    .compose-left { display: flex; flex-direction: column; gap: 0.85rem; }
+    .compose-right { display: flex; flex-direction: column; gap: 0.85rem; }
+    .compose-input { width: 100%; background: white; border: 1.5px solid var(--border); border-radius: 3px; padding: 0.62rem 0.8rem; font-family: var(--sans); font-size: 0.87rem; color: var(--ink); outline: none; transition: border-color 0.2s; }
+    .compose-input:focus { border-color: var(--ink); }
+    .compose-input.subject-input { font-family: var(--serif); font-size: 1.05rem; font-weight: 700; }
+    textarea.compose-input { resize: vertical; min-height: 230px; line-height: 1.65; }
+    .preview-card { background: white; border: 1.5px solid var(--border); border-radius: 4px; overflow: hidden; }
+    .preview-header { background: var(--ink); color: var(--paper); padding: 0.75rem 1rem; font-family: var(--mono); font-size: 0.62rem; text-transform: uppercase; letter-spacing: 2px; }
+    .preview-body { padding: 1rem; font-size: 0.8rem; line-height: 1.7; min-height: 130px; }
+    .preview-subject { font-family: var(--serif); font-size: 0.95rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .recipient-options { display: flex; flex-direction: column; gap: 0.3rem; }
+    .recipient-opt { display: flex; align-items: center; gap: 0.55rem; padding: 0.42rem 0.6rem; border: 1.5px solid var(--border); border-radius: 3px; cursor: pointer; font-size: 0.78rem; transition: all 0.15s; }
+    .recipient-opt:hover { border-color: var(--ink); }
+    .recipient-opt.selected { border-color: var(--ink); background: var(--ink); color: var(--paper); }
+    .recipient-opt input { display: none; }
+    .opt-count { margin-left: auto; font-family: var(--mono); font-size: 0.62rem; color: var(--muted); }
+    .recipient-opt.selected .opt-count { color: rgba(245,240,232,0.6); }
+    .dsgvo-info { background: #fffbf0; border: 1.5px solid #e8d48a; border-radius: 3px; padding: 0.75rem 0.9rem; font-size: 0.74rem; line-height: 1.6; color: #5a4a00; }
+    .dsgvo-info strong { font-family: var(--mono); font-size: 0.6rem; text-transform: uppercase; letter-spacing: 1px; }
+    .btn-send { background: var(--accent); color: white; border: none; padding: 0.78rem; font-family: var(--mono); font-size: 0.7rem; text-transform: uppercase; letter-spacing: 2px; cursor: pointer; border-radius: 3px; transition: all 0.2s; width: 100%; }
+    .btn-send:hover { background: #a83a20; transform: translateY(-1px); }
+    .btn-send:disabled { background: var(--muted); cursor: not-allowed; transform: none; }
+    .history-list { display: flex; flex-direction: column; gap: 0.85rem; }
+    .history-card { background: white; border: 1.5px solid var(--border); border-radius: 4px; padding: 1rem 1.2rem; display: grid; grid-template-columns: 1fr auto; gap: 0.4rem; }
+    .history-subject { font-family: var(--serif); font-size: 0.95rem; font-weight: 700; }
+    .history-meta { font-family: var(--mono); font-size: 0.62rem; color: var(--muted); margin-top: 0.2rem; }
+    .history-badge { font-family: var(--mono); font-size: 0.6rem; padding: 0.18rem 0.45rem; border-radius: 2px; height: fit-content; }
+    .history-badge.sent { background: #d4edda; color: var(--success); }
+    .modal-overlay { position: fixed; inset: 0; background: rgba(14,13,12,0.7); display: flex; align-items: center; justify-content: center; z-index: 1000; padding: 2rem; opacity: 0; pointer-events: none; transition: opacity 0.2s; }
+    .modal-overlay.show { opacity: 1; pointer-events: all; }
+    .modal { background: var(--paper); border: 2px solid var(--ink); border-radius: 4px; width: 100%; max-width: 640px; max-height: 80vh; overflow: hidden; display: flex; flex-direction: column; transform: translateY(20px); transition: transform 0.2s; }
+    .modal-overlay.show .modal { transform: translateY(0); }
+    .modal-header { padding: 1.1rem 1.4rem; border-bottom: 2px solid var(--ink); display: flex; align-items: center; justify-content: space-between; }
+    .modal-title { font-family: var(--serif); font-size: 1.15rem; font-weight: 700; }
+    .modal-close { background: none; border: none; cursor: pointer; font-size: 1.1rem; color: var(--muted); }
+    .modal-body { padding: 1.4rem; overflow-y: auto; font-size: 0.81rem; line-height: 1.75; }
+    .modal-body h3 { font-family: var(--serif); font-size: 0.95rem; margin: 1.1rem 0 0.35rem; }
+    .modal-body h3:first-child { margin-top: 0; }
+    .empty { display: flex; flex-direction: column; align-items: center; justify-content: center; flex: 1; gap: 0.65rem; color: var(--muted); text-align: center; padding: 3rem; }
+    .empty-icon { font-size: 2.5rem; opacity: 0.4; }
+    .empty-title { font-family: var(--serif); font-size: 1.15rem; color: var(--ink); }
+    .empty-text { font-size: 0.78rem; max-width: 250px; line-height: 1.6; }
+    .toast { position: fixed; bottom: 2rem; right: 2rem; background: var(--ink); color: var(--paper); padding: 0.72rem 1.1rem; border-radius: 4px; font-family: var(--mono); font-size: 0.68rem; transform: translateY(100px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 999; border-left: 4px solid var(--accent); max-width: 300px; }
+    .toast.show { transform: translateY(0); opacity: 1; }
+    .toast.success { border-left-color: var(--success); }
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+    @keyframes fadeUp { from { opacity:0; transform:translateY(14px); } to { opacity:1; transform:translateY(0); } }
+    @media (max-width:860px) { #authWrap { grid-template-columns:1fr; } .auth-left { display:none; } .app { grid-template-columns:1fr; } .compose-grid { grid-template-columns:1fr; } }
+  </style>
+</head>
+<body>
+
+<!-- ══════ AUTH ══════ -->
+<div id="authWrap">
+  <div class="auth-left">
+    <div>
+      <div class="auth-brand">Dis<span>patch</span></div>
+      <div class="auth-tagline">Professionelles Newsletter-Management für Teams, die Datenschutz ernst nehmen.</div>
+      <div class="auth-features">
+        <div class="auth-feat"><div class="auth-feat-icon">📂</div>CSV-Import mit automatischer Segmentierung</div>
+        <div class="auth-feat"><div class="auth-feat-icon">✍️</div>Newsletter verfassen und versenden</div>
+        <div class="auth-feat"><div class="auth-feat-icon">📊</div>Versandverlauf und Zielgruppen-Tracking</div>
+        <div class="auth-feat"><div class="auth-feat-icon">⚖️</div>DSGVO-konforme Einwilligungsverwaltung</div>
+      </div>
+    </div>
+    <div class="dsgvo-badge">✓ &nbsp;DSGVO / GDPR · UWG § 7 konform</div>
+  </div>
+
+  <div class="auth-right">
+    <!-- LOGIN -->
+    <div class="auth-card" id="loginCard">
+      <div class="auth-title">Willkommen zurück</div>
+      <div class="auth-sub">Noch kein Konto? <a onclick="showRegister()">Jetzt registrieren →</a></div>
+      <div class="form-group">
+        <label class="field-label">E-Mail-Adresse</label>
+        <input type="email" class="field-input" id="loginEmail" placeholder="name@firma.de" autocomplete="email"/>
+        <div class="field-err" id="loginEmailErr">Bitte gültige E-Mail-Adresse eingeben.</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Passwort</label>
+        <input type="password" class="field-input" id="loginPass" placeholder="••••••••" autocomplete="current-password"/>
+        <div class="field-err" id="loginPassErr">E-Mail oder Passwort falsch.</div>
+      </div>
+      <button class="btn-primary" onclick="doLogin()">Anmelden →</button>
+      <div class="divider">oder</div>
+      <div style="font-family:var(--mono);font-size:0.63rem;color:var(--muted);text-align:center;line-height:1.7">
+        Demo: <strong>demo@dispatch.de</strong> / <strong>demo1234</strong>
+      </div>
+    </div>
+
+    <!-- REGISTER -->
+    <div class="auth-card" id="registerCard" style="display:none">
+      <div class="auth-title">Konto erstellen</div>
+      <div class="auth-sub">Bereits registriert? <a onclick="showLogin()">Anmelden →</a></div>
+      <div class="form-group">
+        <label class="field-label">Vollständiger Name</label>
+        <input type="text" class="field-input" id="regName" placeholder="Max Mustermann"/>
+        <div class="field-err" id="regNameErr">Bitte Namen eingeben.</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">E-Mail-Adresse</label>
+        <input type="email" class="field-input" id="regEmail" placeholder="name@firma.de"/>
+        <div class="field-err" id="regEmailErr">Bitte gültige E-Mail-Adresse eingeben.</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Passwort (mind. 8 Zeichen)</label>
+        <input type="password" class="field-input" id="regPass" placeholder="••••••••"/>
+        <div class="field-err" id="regPassErr">Passwort muss mind. 8 Zeichen haben.</div>
+      </div>
+      <div class="form-group">
+        <label class="field-label">Passwort bestätigen</label>
+        <input type="password" class="field-input" id="regPass2" placeholder="••••••••"/>
+        <div class="field-err" id="regPass2Err">Passwörter stimmen nicht überein.</div>
+      </div>
+
+      <div class="consent-block">
+        <div class="consent-title">⚖️ &nbsp;Datenschutz-Einwilligungen (DSGVO Art. 7)</div>
+        <div class="consent-row">
+          <input type="checkbox" id="consentPrivacy"/>
+          <label for="consentPrivacy">Ich habe die <a onclick="showPrivacy()">Datenschutzerklärung</a> gelesen und stimme der Verarbeitung meiner Daten gemäß Art. 6 Abs. 1 lit. a DSGVO zu. <strong>*</strong></label>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" id="consentTerms"/>
+          <label for="consentTerms">Ich akzeptiere die <a onclick="showTerms()">Nutzungsbedingungen</a> und bin mindestens 18 Jahre alt. <strong>*</strong></label>
+        </div>
+        <div class="consent-row">
+          <input type="checkbox" id="consentMarketing"/>
+          <label for="consentMarketing">Ich möchte gelegentlich Produktneuigkeiten erhalten (optional, jederzeit widerrufbar).</label>
+        </div>
+        <div class="field-err" id="consentErr" style="margin-top:0.4rem">Bitte Pflichtfelder akzeptieren.</div>
+      </div>
+
+      <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);margin-bottom:0.8rem;line-height:1.65">
+        Ihre Daten werden nur zur Kontoführung verarbeitet. Recht auf Auskunft, Berichtigung und Löschung gemäß DSGVO Art. 15–17. Verantwortlicher: Dispatch GmbH, Beispielstraße 1, 45127 Essen.
+      </div>
+      <button class="btn-primary" onclick="doRegister()">Konto erstellen &amp; einwilligen →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════ APP ══════ -->
+<div id="appWrap" style="display:none;flex-direction:column">
+  <header>
+    <div class="logo">Dis<span>patch</span></div>
+    <div class="header-right">
+      <div class="user-chip">
+        <div class="user-avatar" id="userAvatar">–</div>
+        <span id="userNameDisplay">–</span>
+      </div>
+      <button class="btn-logout" onclick="doLogout()">Abmelden</button>
+    </div>
+  </header>
+
+  <div class="app">
+    <aside class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">CSV importieren</div>
+        <label class="drop-zone" id="dropZone">
+          <span class="icon">📂</span>CSV hier ablegen oder klicken
+          <input type="file" id="csvInput" accept=".csv"/>
+        </label>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Übersicht</div>
+        <div class="stat-grid">
+          <div class="stat-box"><div class="stat-num" id="statTotal">0</div><div class="stat-label">Abonnenten</div></div>
+          <div class="stat-box"><div class="stat-num" id="statSent">0</div><div class="stat-label">Versandt</div></div>
+          <div class="stat-box"><div class="stat-num" id="statOptin">0</div><div class="stat-label">Eingewilligt</div></div>
+          <div class="stat-box"><div class="stat-num" id="statPending">0</div><div class="stat-label">Ausstehend</div></div>
+        </div>
+      </div>
+      <div class="search-bar">
+        <input type="text" id="searchInput" placeholder="Abonnenten suchen…"/>
+      </div>
+      <div class="sub-list" id="subList">
+        <div class="empty" style="padding:1.2rem">
+          <div class="empty-icon">📋</div>
+          <div style="font-size:0.73rem;color:var(--muted)">CSV importieren um Abonnenten zu sehen</div>
+        </div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="tabs">
+        <div class="tab active" data-tab="compose">✍️ &nbsp;Verfassen</div>
+        <div class="tab" data-tab="history">📜 &nbsp;Verlauf</div>
+        <div class="tab" data-tab="dsgvo">⚖️ &nbsp;DSGVO</div>
+      </div>
+
+      <div class="panel active" id="panel-compose">
+        <div class="compose-grid">
+          <div class="compose-left">
+            <div><div class="field-label">Betreffzeile</div><input type="text" class="compose-input subject-input" id="subject" placeholder="Ihr überzeugender Betreff…"/></div>
+            <div><div class="field-label">Vorschautext</div><input type="text" class="compose-input" id="previewText" placeholder="Kurzer Teaser im Posteingang…"/></div>
+            <div style="flex:1;display:flex;flex-direction:column">
+              <div class="field-label">Nachrichtentext</div>
+              <textarea class="compose-input" id="body" placeholder="Newsletter hier schreiben…&#10;&#10;Tipp: Verwenden Sie {{name}} zur Personalisierung."></textarea>
+            </div>
+          </div>
+          <div class="compose-right">
+            <div>
+              <div class="field-label">Empfänger</div>
+              <div class="recipient-options" id="recipientOptions">
+                <label class="recipient-opt selected"><input type="radio" name="recipients" value="all" checked/>Alle (mit Einwilligung)<span class="opt-count">0</span></label>
+              </div>
+            </div>
+            <div class="dsgvo-info">
+              <strong>⚖️ DSGVO-Hinweis</strong><br/>Es werden nur Abonnenten mit gültiger Einwilligung angeschrieben. Jede E-Mail enthält einen Abmeldelink gemäß § 7 UWG.
+            </div>
+            <div>
+              <div class="field-label">Vorschau</div>
+              <div class="preview-card">
+                <div class="preview-header">📧 &nbsp;E-Mail Vorschau</div>
+                <div class="preview-body">
+                  <div class="preview-subject" id="previewSubject">Betreff erscheint hier</div>
+                  <div id="previewBody" style="color:var(--muted);font-style:italic">Beginnen Sie zu schreiben…</div>
+                </div>
+              </div>
+            </div>
+            <button class="btn-send" id="sendBtn" disabled>Newsletter versenden →</button>
+            <div style="font-family:var(--mono);font-size:0.58rem;color:var(--muted);text-align:center;line-height:1.6">MVP: Versand wird lokal protokolliert.<br/>E-Mail-API anschließen für Live-Betrieb.</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-history">
+        <div id="historyContent">
+          <div class="empty"><div class="empty-icon">📜</div><div class="empty-title">Noch kein Versand</div><div class="empty-text">Sobald Sie einen Newsletter versenden, erscheint er hier.</div></div>
+        </div>
+      </div>
+
+      <div class="panel" id="panel-dsgvo">
+        <div style="max-width:660px;display:flex;flex-direction:column;gap:1.1rem">
+          <div>
+            <div style="font-family:var(--serif);font-size:1.5rem;font-weight:700;margin-bottom:0.3rem">DSGVO-Compliance Center</div>
+            <div style="color:var(--muted);font-size:0.81rem">Datenschutzpflichten gemäß DSGVO, BDSG und UWG im Überblick.</div>
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:0.9rem">
+            <div style="background:white;border:1.5px solid var(--border);border-radius:4px;padding:1rem">
+              <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">Rechtsgrundlage</div>
+              <div style="font-size:0.8rem;line-height:1.7">Verarbeitung auf Basis von <strong>Art. 6 Abs. 1 lit. a DSGVO</strong> (Einwilligung). Einwilligungen sind dokumentiert und widerrufbar.</div>
+            </div>
+            <div style="background:white;border:1.5px solid var(--border);border-radius:4px;padding:1rem">
+              <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">UWG § 7</div>
+              <div style="font-size:0.8rem;line-height:1.7">Alle Newsletter enthalten einen <strong>Abmeldelink</strong>. Kein Versand ohne ausdrückliche Einwilligung (Double-Opt-In).</div>
+            </div>
+            <div style="background:white;border:1.5px solid var(--border);border-radius:4px;padding:1rem">
+              <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">Betroffenenrechte</div>
+              <div style="font-size:0.8rem;line-height:1.7">Auskunft (Art. 15), Berichtigung (Art. 16), <strong>Löschung (Art. 17)</strong>, Einschränkung (Art. 18), Portabilität (Art. 20).</div>
+            </div>
+            <div style="background:white;border:1.5px solid var(--border);border-radius:4px;padding:1rem">
+              <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.5rem">Speicherfristen</div>
+              <div style="font-size:0.8rem;line-height:1.7">Daten nur so lange wie Einwilligung aktiv. Nach Widerruf: Löschung binnen <strong>30 Tagen</strong>.</div>
+            </div>
+          </div>
+          <div style="background:#fffbf0;border:1.5px solid #e8d48a;border-radius:4px;padding:1.1rem">
+            <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--warn);margin-bottom:0.6rem">⚠️ Pflichten als Verantwortlicher (Deutschland)</div>
+            <div style="font-size:0.8rem;line-height:1.85">
+              <strong>1. Verarbeitungsverzeichnis:</strong> Führen Sie ein Verzeichnis gemäß Art. 30 DSGVO.<br/>
+              <strong>2. Datenschutzerklärung:</strong> Veröffentlichen Sie eine aktuelle DSE auf Ihrer Website.<br/>
+              <strong>3. AVV:</strong> Schließen Sie mit Ihrem E-Mail-Dienstleister einen Auftragsverarbeitungsvertrag (Art. 28) ab.<br/>
+              <strong>4. Drittstaatstransfer:</strong> Bei US-Diensten: EU-Standardvertragsklauseln oder Adequacy Decision prüfen.<br/>
+              <strong>5. Datenpanne:</strong> Meldepflicht innerhalb 72 Stunden an die Aufsichtsbehörde (Art. 33 DSGVO).<br/>
+              <strong>6. DSB:</strong> Ab 20 regelmäßig mit Daten beschäftigten Personen ist ein Datenschutzbeauftragter zu benennen.
+            </div>
+          </div>
+          <div style="background:white;border:1.5px solid var(--border);border-radius:4px;padding:1.1rem">
+            <div style="font-family:var(--mono);font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:0.7rem">Abonnent löschen (Art. 17 DSGVO — Recht auf Löschung)</div>
+            <div style="font-size:0.8rem;color:var(--muted);margin-bottom:0.7rem">E-Mail-Adresse eingeben, um alle gespeicherten Daten zu löschen:</div>
+            <div style="display:flex;gap:0.55rem">
+              <input type="email" class="field-input" id="deleteEmail" placeholder="abonnent@beispiel.de" style="flex:1;font-size:0.82rem"/>
+              <button onclick="deleteSubscriber()" style="background:var(--accent);color:white;border:none;padding:0 1.1rem;border-radius:3px;font-family:var(--mono);font-size:0.65rem;cursor:pointer;white-space:nowrap">Löschen</button>
+            </div>
+            <div id="deleteResult" style="margin-top:0.45rem;font-family:var(--mono);font-size:0.63rem;display:none"></div>
+          </div>
+          <div style="font-family:var(--mono);font-size:0.6rem;color:var(--muted);line-height:1.8;padding:0.8rem;border-top:1px solid var(--border)">
+            Verantwortlicher: Dispatch GmbH · Beispielstraße 1 · 45127 Essen · datenschutz@dispatch.de<br/>
+            Aufsichtsbehörde: LDI NRW · www.ldi.nrw.de · 40102 Düsseldorf<br/>
+            <em>Dieses Tool ersetzt keine Rechtsberatung. Wenden Sie sich bei Fragen an einen zertifizierten Datenschutzbeauftragten.</em>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- MODALS -->
+<div class="modal-overlay" id="privacyModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Datenschutzerklärung</div><button class="modal-close" onclick="closeModal('privacyModal')">✕</button></div>
+    <div class="modal-body">
+      <h3>1. Verantwortlicher</h3><p>Dispatch GmbH, Beispielstraße 1, 45127 Essen. E-Mail: datenschutz@dispatch.de</p>
+      <h3>2. Erhobene Daten</h3><p>Bei Registrierung: Name, E-Mail, Passwort (verschlüsselt), Einwilligungszeitpunkt und -nachweis.</p>
+      <h3>3. Verarbeitungszweck &amp; Rechtsgrundlage</h3><p>Ausschließlich zur Bereitstellung des Dienstes. Rechtsgrundlage: Art. 6 Abs. 1 lit. a (Einwilligung) und lit. b (Vertragserfüllung) DSGVO.</p>
+      <h3>4. Speicherdauer</h3><p>Solange Ihr Konto aktiv ist. Nach Kündigung/Löschung werden Daten binnen 30 Tagen gelöscht, soweit keine gesetzlichen Aufbewahrungspflichten bestehen.</p>
+      <h3>5. Ihre Rechte</h3><p>Auskunft (Art. 15), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung (Art. 18), Datenportabilität (Art. 20), Widerspruch (Art. 21). Kontakt: datenschutz@dispatch.de</p>
+      <h3>6. Beschwerderecht</h3><p>Sie können sich bei der LDI NRW beschweren: www.ldi.nrw.de</p>
+      <h3>7. Widerruf</h3><p>Einwilligung jederzeit mit Wirkung für die Zukunft widerrufbar, ohne dass die bisherige Verarbeitung rechtswidrig wird.</p>
+    </div>
+  </div>
+</div>
+
+<div class="modal-overlay" id="termsModal">
+  <div class="modal">
+    <div class="modal-header"><div class="modal-title">Nutzungsbedingungen</div><button class="modal-close" onclick="closeModal('termsModal')">✕</button></div>
+    <div class="modal-body">
+      <h3>1. Geltungsbereich</h3><p>Diese Bedingungen gelten für die Nutzung der Dispatch Newsletter-Management-Plattform.</p>
+      <h3>2. Nutzerpflichten</h3><p>Sie verpflichten sich zur ausschließlich rechtskonformen Nutzung. Newsletter dürfen nur an Empfänger mit ausdrücklicher Einwilligung versandt werden (Double-Opt-In, § 7 Abs. 2 UWG).</p>
+      <h3>3. Unzulässige Inhalte</h3><p>Verboten sind: Spam, irreführende Werbung, rechtswidrige Inhalte, Verstöße gegen UWG, DSGVO oder sonstiges anwendbares Recht.</p>
+      <h3>4. Haftung</h3><p>Der Nutzer haftet allein für die Rechtmäßigkeit versandter Inhalte und die Einhaltung datenschutzrechtlicher Anforderungen.</p>
+      <h3>5. Kündigung</h3><p>Beide Seiten können jederzeit und ohne Angabe von Gründen kündigen. Alle Daten werden nach Kündigung gemäß Datenschutzerklärung gelöscht.</p>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// STORAGE
+const DB = {
+  users:      () => JSON.parse(localStorage.getItem('dsp_users')  || '{}'),
+  setUsers:    v  => localStorage.setItem('dsp_users', JSON.stringify(v)),
+  history:    () => JSON.parse(localStorage.getItem('dsp_hist')   || '[]'),
+  setHistory:  v  => localStorage.setItem('dsp_hist', JSON.stringify(v)),
+  session:    () => localStorage.getItem('dsp_session'),
+  setSession:  v  => localStorage.setItem('dsp_session', v),
+  clearSession:() => localStorage.removeItem('dsp_session'),
+  subs:       () => JSON.parse(localStorage.getItem('dsp_subs')   || '[]'),
+  setSubs:     v  => localStorage.setItem('dsp_subs', JSON.stringify(v)),
+};
+// Seed demo
+(()=>{ const u=DB.users(); if(!u['demo@dispatch.de']){ u['demo@dispatch.de']={name:'Demo User',pass:'demo1234',consent:true,ts:Date.now()}; DB.setUsers(u); }})();
+
+let currentUser = null;
+let subscribers = [];
+let search = '';
+
+// AUTH
+function showRegister(){ document.getElementById('loginCard').style.display='none'; document.getElementById('registerCard').style.display='block'; }
+function showLogin(){ document.getElementById('registerCard').style.display='none'; document.getElementById('loginCard').style.display='block'; }
+
+function doLogin(){
+  const email = document.getElementById('loginEmail').value.trim().toLowerCase();
+  const pass  = document.getElementById('loginPass').value;
+  clearErr(['loginEmail','loginPass']);
+  let ok=true;
+  if(!email.includes('@')){ showErr('loginEmail','loginEmailErr'); ok=false; }
+  if(!pass){ showErr('loginPass','loginPassErr'); ok=false; }
+  if(!ok) return;
+  const users=DB.users();
+  if(!users[email]||users[email].pass!==pass){ showErr('loginPass','loginPassErr'); return; }
+  DB.setSession(email); launchApp(email,users[email]);
+}
+
+function doRegister(){
+  const name=document.getElementById('regName').value.trim();
+  const email=document.getElementById('regEmail').value.trim().toLowerCase();
+  const pass=document.getElementById('regPass').value;
+  const pass2=document.getElementById('regPass2').value;
+  const c1=document.getElementById('consentPrivacy').checked;
+  const c2=document.getElementById('consentTerms').checked;
+  clearErr(['regName','regEmail','regPass','regPass2']);
+  document.getElementById('consentErr').classList.remove('show');
+  let ok=true;
+  if(!name){ showErr('regName','regNameErr'); ok=false; }
+  if(!email.includes('@')){ showErr('regEmail','regEmailErr'); ok=false; }
+  if(pass.length<8){ showErr('regPass','regPassErr'); ok=false; }
+  if(pass!==pass2){ showErr('regPass2','regPass2Err'); ok=false; }
+  if(!c1||!c2){ document.getElementById('consentErr').classList.add('show'); ok=false; }
+  if(!ok) return;
+  const users=DB.users();
+  if(users[email]){ document.getElementById('regEmailErr').textContent='Diese E-Mail ist bereits registriert.'; showErr('regEmail','regEmailErr'); return; }
+  users[email]={name,pass,consent:true,consentMarketing:document.getElementById('consentMarketing').checked,ts:Date.now()};
+  DB.setUsers(users); DB.setSession(email); launchApp(email,users[email]);
+}
+
+function doLogout(){
+  DB.clearSession(); currentUser=null;
+  document.getElementById('appWrap').style.display='none';
+  document.getElementById('authWrap').style.display='grid';
+  subscribers=[];
+  showToast('Erfolgreich abgemeldet.');
+}
+
+function launchApp(email,user){
+  currentUser={email,...user};
+  document.getElementById('authWrap').style.display='none';
+  document.getElementById('appWrap').style.display='flex';
+  document.getElementById('userNameDisplay').textContent=user.name;
+  document.getElementById('userAvatar').textContent=user.name.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  subscribers=DB.subs().filter(s=>s.owner===email);
+  renderSubList(); updateStats(); updateRecipientOptions(); renderHistory();
+  document.getElementById('sendBtn').disabled=subscribers.filter(s=>s.optin).length===0;
+}
+
+// Auto-login
+window.addEventListener('DOMContentLoaded',()=>{ const s=DB.session(); if(s){ const u=DB.users(); if(u[s]) launchApp(s,u[s]); }});
+
+// CSV
+function parseCSV(text){
+  const lines=text.trim().split('\n');
+  if(lines.length<2) return [];
+  const headers=lines[0].split(',').map(h=>h.trim().replace(/"/g,'').toLowerCase());
+  const eC=headers.findIndex(h=>h.includes('email')||h==='e-mail');
+  const nC=headers.findIndex(h=>h.includes('name')||h.includes('first'));
+  const tC=headers.findIndex(h=>h.includes('tag')||h.includes('group')||h.includes('list')||h.includes('segment'));
+  const oC=headers.findIndex(h=>h.includes('optin')||h.includes('opt-in')||h.includes('consent'));
+  if(eC===-1){ showToast('Keine E-Mail-Spalte gefunden!',false); return []; }
+  return lines.slice(1).map(line=>{
+    const c=line.split(',').map(x=>x.replace(/^"|"$/g,'').trim());
+    const optin=oC>-1?(['true','1','ja','yes'].includes((c[oC]||'').toLowerCase())):true;
+    return {email:c[eC]||'',name:nC>-1?c[nC]||'':'',tag:tC>-1?c[tC]||'':'',optin,owner:currentUser.email};
+  }).filter(s=>s.email&&s.email.includes('@'));
+}
+
+function handleCSV(file){
+  if(!file||!file.name.endsWith('.csv')){ showToast('Bitte .csv-Datei hochladen',false); return; }
+  const r=new FileReader();
+  r.onload=e=>{
+    const parsed=parseCSV(e.target.result);
+    if(!parsed.length) return;
+    const ex=new Set(subscribers.map(s=>s.email));
+    const newOnes=parsed.filter(s=>!ex.has(s.email));
+    subscribers=[...subscribers,...newOnes];
+    const all=DB.subs().filter(s=>s.owner!==currentUser.email);
+    DB.setSubs([...all,...subscribers]);
+    updateStats(); updateRecipientOptions(); renderSubList();
+    document.getElementById('sendBtn').disabled=subscribers.filter(s=>s.optin).length===0;
+    showToast(`✓ ${newOnes.length} neue Abonnenten importiert (${subscribers.length} gesamt)`,true);
+  };
+  r.readAsText(file);
+}
+
+function initials(n,e){ return n?n.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2):e[0].toUpperCase(); }
+
+function updateStats(){
+  document.getElementById('statTotal').textContent=subscribers.length;
+  document.getElementById('statSent').textContent=DB.history().filter(h=>h.owner===currentUser?.email).length;
+  document.getElementById('statOptin').textContent=subscribers.filter(s=>s.optin).length;
+  document.getElementById('statPending').textContent=subscribers.filter(s=>!s.optin).length;
+}
+
+function renderSubList(){
+  const q=search.toLowerCase();
+  const f=subscribers.filter(s=>s.email.toLowerCase().includes(q)||s.name.toLowerCase().includes(q)||(s.tag||'').toLowerCase().includes(q));
+  const list=document.getElementById('subList');
+  if(!f.length){ list.innerHTML=`<div class="empty" style="padding:1.2rem"><div class="empty-icon">🔍</div><div style="font-size:0.72rem;color:var(--muted)">${subscribers.length?'Keine Treffer':'CSV importieren'}</div></div>`; return; }
+  list.innerHTML=f.map(s=>`<div class="sub-item" title="${s.email}">
+    <div class="sub-avatar">${initials(s.name,s.email)}</div>
+    <div class="sub-info"><div class="sub-name">${s.name||s.email}</div><div class="sub-email">${s.name?s.email:''}</div></div>
+    ${s.tag?`<div class="sub-tag">${s.tag}</div>`:''}
+    <div class="optin-dot ${s.optin?'yes':'no'}" title="${s.optin?'Eingewilligt':'Kein Opt-in'}"></div>
+  </div>`).join('');
+}
+
+function updateRecipientOptions(){
+  const tags=[...new Set(subscribers.map(s=>s.tag).filter(Boolean))];
+  const total=subscribers.filter(s=>s.optin).length;
+  const opts=document.getElementById('recipientOptions');
+  opts.innerHTML=`<label class="recipient-opt selected"><input type="radio" name="recipients" value="all" checked/>Alle (mit Einwilligung)<span class="opt-count">${total}</span></label>`
+    +tags.map(tag=>{const c=subscribers.filter(s=>s.tag===tag&&s.optin).length;return`<label class="recipient-opt"><input type="radio" name="recipients" value="${tag}"/>${tag}<span class="opt-count">${c}</span></label>`;}).join('');
+  opts.querySelectorAll('.recipient-opt').forEach(opt=>opt.addEventListener('click',()=>{ opts.querySelectorAll('.recipient-opt').forEach(o=>o.classList.remove('selected')); opt.classList.add('selected'); }));
+}
+
+// Compose
+document.getElementById('subject').addEventListener('input',e=>{ document.getElementById('previewSubject').textContent=e.target.value||'Betreff erscheint hier'; });
+document.getElementById('body').addEventListener('input',e=>{ const v=e.target.value; document.getElementById('previewBody').innerHTML=v?v.replace(/\n/g,'<br>').replace(/\{\{name\}\}/g,'<strong>[Name]</strong>'):'<span style="color:var(--muted);font-style:italic">Beginnen Sie zu schreiben…</span>'; });
+
+document.getElementById('sendBtn').addEventListener('click',()=>{
+  const subject=document.getElementById('subject').value.trim();
+  const body=document.getElementById('body').value.trim();
+  if(!subject){ showToast('Bitte Betreffzeile eingeben',false); return; }
+  if(!body){ showToast('Bitte Nachrichtentext eingeben',false); return; }
+  const sel=document.querySelector('input[name="recipients"]:checked')?.value;
+  const recs=sel==='all'?subscribers.filter(s=>s.optin):subscribers.filter(s=>s.tag===sel&&s.optin);
+  if(!recs.length){ showToast('Keine Empfänger mit Einwilligung',false); return; }
+  const hist=DB.history();
+  hist.unshift({id:Date.now(),owner:currentUser.email,subject,body,preview:document.getElementById('previewText').value,recipients:recs.length,tag:sel,date:new Date().toISOString()});
+  DB.setHistory(hist); updateStats(); renderHistory();
+  showToast(`✓ An ${recs.length} Abonnenten versandt`,true);
+  ['subject','body','previewText'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('previewSubject').textContent='Betreff erscheint hier';
+  document.getElementById('previewBody').innerHTML='<span style="color:var(--muted);font-style:italic">Beginnen Sie zu schreiben…</span>';
+});
+
+// History
+function renderHistory(){
+  const hist=DB.history().filter(h=>h.owner===currentUser?.email);
+  const cont=document.getElementById('historyContent');
+  if(!hist.length){ cont.innerHTML='<div class="empty"><div class="empty-icon">📜</div><div class="empty-title">Noch kein Versand</div></div>'; return; }
+  cont.innerHTML=`<div class="history-list">${hist.map(h=>{const d=new Date(h.date);return`<div class="history-card"><div><div class="history-subject">${h.subject}</div><div class="history-meta">${d.toLocaleDateString('de-DE',{day:'2-digit',month:'short',year:'numeric'})} · ${h.recipients} Empfänger${h.tag!=='all'?` (${h.tag})`:''}</div><div style="margin-top:0.4rem;font-size:0.76rem;color:var(--muted)">${h.body.slice(0,110)}${h.body.length>110?'…':''}</div></div><span class="history-badge sent">✓ Versandt</span></div>`;}).join('')}</div>`;
+}
+
+// DSGVO delete
+function deleteSubscriber(){
+  const email=document.getElementById('deleteEmail').value.trim().toLowerCase();
+  const res=document.getElementById('deleteResult');
+  if(!email.includes('@')){ res.style.display='block'; res.style.color='var(--accent)'; res.textContent='Bitte gültige E-Mail eingeben.'; return; }
+  const before=subscribers.length;
+  subscribers=subscribers.filter(s=>s.email!==email);
+  const all=DB.subs().filter(s=>s.owner!==currentUser.email);
+  DB.setSubs([...all,...subscribers]);
+  if(subscribers.length<before){ res.style.display='block'; res.style.color='var(--success)'; res.textContent=`✓ "${email}" gemäß Art. 17 DSGVO gelöscht.`; renderSubList(); updateStats(); updateRecipientOptions(); document.getElementById('deleteEmail').value=''; showToast('Abonnent gelöscht (Art. 17 DSGVO)',true); }
+  else{ res.style.display='block'; res.style.color='var(--accent)'; res.textContent='E-Mail-Adresse nicht gefunden.'; }
+}
+
+// Tabs
+document.querySelectorAll('.tab').forEach(tab=>tab.addEventListener('click',()=>{
+  document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));
+  document.querySelectorAll('.panel').forEach(p=>p.classList.remove('active'));
+  tab.classList.add('active');
+  document.getElementById(`panel-${tab.dataset.tab}`).classList.add('active');
+  if(tab.dataset.tab==='history') renderHistory();
+}));
+
+// Drop zone
+const dz=document.getElementById('dropZone'), ci=document.getElementById('csvInput');
+ci.addEventListener('change',e=>{if(e.target.files[0])handleCSV(e.target.files[0]);});
+dz.addEventListener('dragover',e=>{e.preventDefault();dz.classList.add('dragover');});
+dz.addEventListener('dragleave',()=>dz.classList.remove('dragover'));
+dz.addEventListener('drop',e=>{e.preventDefault();dz.classList.remove('dragover');handleCSV(e.dataTransfer.files[0]);});
+document.getElementById('searchInput').addEventListener('input',e=>{search=e.target.value;renderSubList();});
+
+// Modals
+function showPrivacy(){document.getElementById('privacyModal').classList.add('show');}
+function showTerms(){document.getElementById('termsModal').classList.add('show');}
+function closeModal(id){document.getElementById(id).classList.remove('show');}
+document.querySelectorAll('.modal-overlay').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.classList.remove('show');}));
+
+// Toast
+function showToast(msg,success=true){const t=document.getElementById('toast');t.textContent=msg;t.className='toast show'+(success?' success':'');clearTimeout(t._t);t._t=setTimeout(()=>t.classList.remove('show'),3500);}
+function showErr(iId,eId){document.getElementById(iId)?.classList.add('err');document.getElementById(eId)?.classList.add('show');}
+function clearErr(ids){ids.forEach(id=>{document.getElementById(id)?.classList.remove('err');document.getElementById(id+'Err')?.classList.remove('show');});}
+document.getElementById('loginPass').addEventListener('keydown',e=>{if(e.key==='Enter')doLogin();});
+</script>
+</body>
+</html>
