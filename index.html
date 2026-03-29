@@ -248,7 +248,7 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
           <div class="stat-box"><div class="stat-num" id="statPending">0</div><div class="stat-lbl">Ausstehend</div></div>
         </div>
       </div>
-      <div class="ss"><button class="btn-add" id="addSubBtn">+ Abonnent hinzufügen</button></div>
+      <div class="ss"><button class="btn-add" onclick="openAddSub()">+ Abonnent hinzufügen</button></div>
       <div class="sbar"><input type="text" id="searchInput" placeholder="Abonnenten suchen…"/></div>
       <div class="sub-list" id="subList">
         <div class="empty" style="padding:1.5rem"><div class="empty-icon">👥</div><div style="font-size:0.72rem;color:var(--muted);text-align:center">CSV importieren oder<br>Abonnenten hinzufügen</div></div>
@@ -312,7 +312,7 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
             <h3>Abonnent löschen (Art. 17 DSGVO)</h3>
             <div style="display:flex;gap:0.55rem;margin-top:0.5rem">
               <input type="email" class="fi" id="deleteEmail" placeholder="email@beispiel.de" style="flex:1;font-size:0.82rem"/>
-              <button id="dsgvoDelBtn" style="background:var(--red);color:#fff;border:none;padding:0 1.1rem;border-radius:4px;font-family:var(--head);font-size:0.78rem;font-weight:700;cursor:pointer;text-transform:uppercase;white-space:nowrap">Löschen</button>
+              <button onclick="dsgvoDelete()" id="dsgvoDelBtn" style="background:var(--red);color:#fff;border:none;padding:0 1.1rem;border-radius:4px;font-family:var(--head);font-size:0.78rem;font-weight:700;cursor:pointer;text-transform:uppercase;white-space:nowrap">Löschen</button>
             </div>
             <div id="deleteResult" style="margin-top:0.45rem;font-family:var(--mono);font-size:0.63rem;display:none"></div>
           </div>
@@ -330,13 +330,13 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
 <!-- ADD SUB MODAL -->
 <div class="modal-overlay" id="addSubModal">
   <div class="modal">
-    <div class="modal-header"><div class="modal-title">Abonnent hinzufügen</div><button class="modal-close" id="closeAddSub">✕</button></div>
+    <div class="modal-header"><div class="modal-title">Abonnent hinzufügen</div><button class="modal-close" onclick="closeModal('addSubModal')">✕</button></div>
     <div class="modal-body">
       <div class="fg"><label class="fl">Name</label><input type="text" class="fi" id="asName" placeholder="Vor- und Nachname"/></div>
       <div class="fg"><label class="fl">E-Mail *</label><input type="email" class="fi" id="asEmail" placeholder="email@beispiel.de"/><div class="fe" id="asEmailErr">Bitte gültige E-Mail eingeben.</div></div>
       <div class="fg"><label class="fl">Gruppe</label><select class="fi" id="asTag"><option value="Weekly">Weekly Digest</option><option value="Aktionen">Aktionen &amp; Angebote</option><option value="VIP">VIP-Kunden</option><option value="Neukunden">Neukunden</option></select></div>
       <div class="fg"><label style="display:flex;align-items:flex-start;gap:0.6rem;font-size:0.77rem;line-height:1.5;cursor:pointer"><input type="checkbox" id="asOptin" checked style="margin-top:2px;accent-color:var(--gold)"/>Einwilligung erteilt (DSGVO Art. 6 Abs. 1 lit. a)</label></div>
-      <button class="btn-gold" id="saveSubBtn">Abonnent speichern</button>
+      <button class="btn-gold" onclick="saveNewSub()">Abonnent speichern</button>
     </div>
   </div>
 </div>
