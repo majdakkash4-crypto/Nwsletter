@@ -1,20 +1,19 @@
-const https = require('https');
+import https from 'https';
 
-module.exports = function handler(req, res) {
+export default function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
   res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
   if (req.method === 'OPTIONS') { res.status(200).end(); return; }
 
-  // Parse body
   const to = (req.body || {}).to;
   const toName = (req.body || {}).toName || to;
   const subject = (req.body || {}).subject;
   const htmlContent = (req.body || {}).htmlContent;
 
   if (!to || !subject) {
-    res.status(400).json({ error: 'Missing to or subject', body: req.body });
+    res.status(400).json({ error: 'Missing to or subject' });
     return;
   }
 
@@ -32,7 +31,7 @@ module.exports = function handler(req, res) {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'api-key': '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',
+      'api-key': process.env.BREVO_API_KEY,
       'Content-Length': Buffer.byteLength(payload)
     }
   }, function(r) {
@@ -53,4 +52,4 @@ module.exports = function handler(req, res) {
 
   req2.write(payload);
   req2.end();
-};
+}
