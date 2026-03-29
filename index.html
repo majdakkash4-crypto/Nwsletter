@@ -739,12 +739,17 @@ async function handleSend() {
     var rec = recs[i];
     var firstName = rec.name ? rec.name.split(" ")[0] : "";
     try {
-      var res = await fetch("https://api.brevo.com/v3/smtp/email", {
+      var response = await fetch("/api/send", {
         method: "POST",
-        headers: { "Content-Type": "application/json", "api-key": BREVO_KEY },
-        body: JSON.stringify({ sender: { name: "Pizza Hood Gescher", email: "info@pizzahood-gescher.de" }, to: [{ email: rec.email, name: rec.name||rec.email }], subject: subj, htmlContent: makeHtml(firstName) })
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          to: rec.email,
+          toName: rec.name || rec.email,
+          subject: subj,
+          htmlContent: makeHtml(firstName)
+        })
       });
-      if (res.ok) sent++; else failed++;
+      if (response.ok) sent++; else { console.error(await response.text()); failed++; }
     } catch(e) { failed++; }
   }
   var h = dbGet("ph_hist") || [];
