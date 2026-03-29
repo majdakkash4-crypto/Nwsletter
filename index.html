@@ -516,17 +516,15 @@ function launchApp() {
 }
 
 document.addEventListener("DOMContentLoaded", function() {
-  document.getElementById("loginPass").addEventListener("keydown", function(e){ if(e.key==="Enter") doLogin(); });
-  document.getElementById("searchInput").addEventListener("input", function(e){ srch = e.target.value; renderSubs(); });
+  var lp = document.getElementById("loginPass"); if(lp) lp.addEventListener("keydown", function(e){ if(e.key==="Enter") doLogin(); });
+  var si = document.getElementById("searchInput"); if(si) si.addEventListener("input", function(e){ srch = e.target.value; renderSubs(); });
   ["subject","body","promoCode","ctaText"].forEach(function(id){
-    document.getElementById(id).addEventListener("input", updatePreview);
+    var el = document.getElementById(id); if(el) el.addEventListener("input", updatePreview);
   });
   var dz = document.getElementById("dropZone");
   var ci = document.getElementById("csvInput");
-  ci.addEventListener("change", function(e){ if(e.target.files[0]) handleCSV(e.target.files[0]); });
-  dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.classList.add("dragover"); });
-  dz.addEventListener("dragleave", function(){ dz.classList.remove("dragover"); });
-  dz.addEventListener("drop", function(e){ e.preventDefault(); dz.classList.remove("dragover"); handleCSV(e.dataTransfer.files[0]); });
+  if(ci) ci.addEventListener("change", function(e){ if(e.target.files[0]) handleCSV(e.target.files[0]); });
+  if(dz) { dz.addEventListener("dragover", function(e){ e.preventDefault(); dz.classList.add("dragover"); }); dz.addEventListener("dragleave", function(){ dz.classList.remove("dragover"); }); dz.addEventListener("drop", function(e){ e.preventDefault(); dz.classList.remove("dragover"); handleCSV(e.dataTransfer.files[0]); }); }
   document.querySelectorAll(".tab").forEach(function(t){
     t.addEventListener("click", function(){
       document.querySelectorAll(".tab").forEach(function(x){ x.classList.remove("active"); });
@@ -539,9 +537,6 @@ document.addEventListener("DOMContentLoaded", function() {
   document.querySelectorAll(".modal-overlay").forEach(function(m){
     m.addEventListener("click", function(e){ if(e.target===m) m.classList.remove("show"); });
   });
-  document.getElementById("sendBtn").addEventListener("click", handleSend);
-  document.getElementById("dsgvoDelBtn").addEventListener("click", dsgvoDelete);
-  document.getElementById("saveSubBtn").addEventListener("click", saveNewSub);
   if (localStorage.getItem("ph_sess") === ADMIN.email) launchApp();
 });
 
