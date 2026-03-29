@@ -734,22 +734,35 @@ async function handleSend() {
 
   var btn = document.getElementById("sendBtn");
   btn.disabled = true; btn.textContent = "Wird versendet…";
-  var sent = 0, failed = 0;
+  var sent = 0, failed = 0, lastError = "";
   for (var i = 0; i < recs.length; i++) {
     var rec = recs[i];
     var firstName = rec.name ? rec.name.split(" ")[0] : "";
     try {
-      var response = await fetch("/api/send", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: rec.email,
-          toName: rec.name || rec.email,
-          subject: subj,
-          htmlContent: makeHtml(firstName)
-        })
-      });
-      if (response.ok) sent++; else { console.error(await response.text()); failed++; }
+      try {
+        var response = await fetch("/api/send", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            to: rec.email,
+            toName: rec.name || rec.email,
+            subject: subj,
+            htmlContent: makeHtml(firstName)
+          })
+        });
+        if (response.ok) {
+          sent++;
+        } else {
+          var errText = await response.text();
+          console.error("Brevo error for " + rec.email + ":", errText);
+          lastError = errText;
+          failed++;
+        }
+      } catch(fetchErr) {
+        console.error("Fetch error:", fetchErr);
+        lastError = fetchErr.message;
+        failed++;
+      }
     } catch(e) { failed++; }
   }
   var h = dbGet("ph_hist") || [];
@@ -758,7 +771,7 @@ async function handleSend() {
   updateStats(); renderHist();
   btn.disabled = false; btn.textContent = "Newsletter versenden";
   if (failed === 0) showToast("Newsletter an " + sent + " Empfaenger versandt!", true);
-  else showToast(sent + " versandt, " + failed + " fehlgeschlagen.", false);
+  else { showToast(sent + " versandt, " + failed + " fehlgeschlagen. Fehler: " + (lastError||"unbekannt"), false); console.error("Last error:", lastError); }
   ["subject","body","previewText","promoCode","ctaText"].forEach(function(id){ document.getElementById(id).value = ""; });
   selProds.clear(); renderProds(); updatePreview();
 }
