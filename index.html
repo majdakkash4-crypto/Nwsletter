@@ -763,7 +763,7 @@ async function handleSend() {
   })() : "";
   var promoHtml = promo ? "<div style=\"margin:16px 0;padding:10px 14px;background:#fff9ec;border:1px dashed #c9a227;border-radius:4px;font-family:monospace;font-size:13px;color:#7a5800\">Aktionscode: <strong>" + promo + "</strong></div>" : "";
   var ctaBtnText = cta || "Jetzt bestellen";
-  var ctaHtml   = "<div style=\\\"margin:20px 0\\\"><a href=\\\"https://pizzahood-gescher.de\\\" style=\\\"display:inline-block;background:#c9a227;color:#1c1c1c;padding:10px 24px;border-radius:4px;font-family:sans-serif;font-weight:700;font-size:14px;text-decoration:none;text-transform:uppercase;letter-spacing:1px\\\">" + ctaBtnText + "</a></div>";
+  var ctaHtml = '<div style="margin:20px 0"><a href="https://pizzahood-gescher.de" style="display:inline-block;background:#c9a227;color:#1c1c1c;padding:10px 24px;border-radius:4px;font-family:sans-serif;font-weight:700;font-size:14px;text-decoration:none;text-transform:uppercase;letter-spacing:1px">' + ctaBtnText + '</a></div>';
 
   function makeHtml(name, email) {
     var parts = [];
