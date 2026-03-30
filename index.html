@@ -186,6 +186,11 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
 .toast.ok{border-left-color:var(--green)}
 .toast.ko{border-left-color:var(--red)}
 
+.template-wrap{margin-bottom:0.8rem}
+.template-label{font-family:var(--mono);font-size:0.57rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-bottom:0.4rem;display:block}
+.template-btns{display:flex;flex-wrap:wrap;gap:0.4rem}
+.tpl-btn{background:var(--surface);border:1.5px solid var(--border);border-radius:4px;padding:0.3rem 0.7rem;font-family:var(--body);font-size:0.72rem;color:var(--dark);cursor:pointer;transition:all 0.15s;text-align:left}
+.tpl-btn:hover{border-color:var(--gold);color:var(--gold);background:var(--gold-dim)}
 .prod-sale-wrap{margin-top:4px;display:none}
 .prod-card.sel .prod-sale-wrap{display:block}
 .prod-sale-input{width:100%;border:1.5px solid var(--red);border-radius:3px;padding:2px 5px;font-size:0.65rem;font-family:var(--mono);color:var(--red);background:#fff8f8;text-align:center;outline:none}
@@ -272,7 +277,18 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
       <div class="panel active" id="panel-compose">
         <div class="compose-grid">
           <div class="cl">
-            <div><div class="sh">Betreffzeile</div><input type="text" class="ci si" id="subject" placeholder="z.B. Wochenend-Angebot: 20% auf alle Pizzen!"/></div>
+            <div class="template-wrap">
+  <span class="template-label">Schnellvorlagen</span>
+  <div class="template-btns">
+    <button class="tpl-btn" onclick="applyTemplate(0)">🔥 Wochenend-Angebot</button>
+    <button class="tpl-btn" onclick="applyTemplate(1)">🍕 Neue Produkte</button>
+    <button class="tpl-btn" onclick="applyTemplate(2)">🎉 Sonderaktion</button>
+    <button class="tpl-btn" onclick="applyTemplate(3)">❄️ Saisonangebot</button>
+    <button class="tpl-btn" onclick="applyTemplate(4)">🎁 Treueaktion</button>
+    <button class="tpl-btn" onclick="applyTemplate(5)">📣 Neue Öffnungszeiten</button>
+  </div>
+</div>
+<div><div class="sh">Betreffzeile</div><input type="text" class="ci si" id="subject" placeholder="z.B. Wochenend-Angebot: 20% auf alle Pizzen!"/></div>
             <div><div class="sh">Vorschautext</div><input type="text" class="ci" id="previewText" placeholder="Kurzer Teaser im Posteingang…"/></div>
             <div><div class="sh">Nachrichtentext</div><textarea class="ci" id="body" placeholder="Liebe Kunden,&#10;&#10;Verwenden Sie {{name}} für persönliche Anrede.&#10;&#10;Ihr Pizza Hood Team"></textarea></div>
             <div><div class="sh">Produkte aus der Speisekarte</div><div class="prod-grid" id="prodGrid"></div></div>
@@ -549,6 +565,58 @@ document.addEventListener("DOMContentLoaded", function() {
   });
   if (localStorage.getItem("ph_sess") === ADMIN.email) launchApp();
 });
+
+
+// ── Newsletter Templates ──
+var TEMPLATES = [
+  {
+    subject: "🔥 Wochenend-Angebot: Jetzt sparen bei Pizza Hood!",
+    preview: "Exklusive Deals nur für dieses Wochenende – schnell sein lohnt sich!",
+    body: "Liebe {{name}},\n\ndieses Wochenende haben wir besondere Angebote nur für Sie vorbereitet! 🍕\n\nNutzen Sie unsere reduzierten Preise und gönnen Sie sich etwas Leckeres. Das Angebot gilt nur von Freitag bis Sonntag – also schnell bestellen!\n\nWir freuen uns auf Ihre Bestellung.\n\nHerzliche Grüße\nIhr Pizza Hood Team 🍕",
+    cta: "Jetzt bestellen & sparen"
+  },
+  {
+    subject: "🍕 Neu bei Pizza Hood – Entdecken Sie unsere neuen Gerichte!",
+    preview: "Frisch auf der Speisekarte – probieren Sie unsere Neuheiten!",
+    body: "Liebe {{name}},\n\nwir haben unsere Speisekarte erweitert und freuen uns, Ihnen unsere neuesten Kreationen vorzustellen! 🌟\n\nVon knusprigen Pizzen bis zu frischen Bowls – für jeden Geschmack ist etwas dabei. Schauen Sie sich unsere Neuheiten an und lassen Sie sich inspirieren!\n\nGuten Appetit und herzliche Grüße\nIhr Pizza Hood Team 🍕",
+    cta: "Neuheiten entdecken"
+  },
+  {
+    subject: "🎉 Sonderaktion bei Pizza Hood – Nur für kurze Zeit!",
+    preview: "Sonderpreise für unsere treuen Kunden – heute zugreifen!",
+    body: "Liebe {{name}},\n\nals besonderes Dankeschön für Ihre Treue haben wir heute eine exklusive Sonderaktion für Sie! 🎉\n\nDiese Angebote gelten nur für kurze Zeit – verpassen Sie nicht die Chance, Ihre Lieblingsgerichte zu einem unschlagbaren Preis zu genießen!\n\nVielen Dank für Ihre Treue!\nIhr Pizza Hood Team 🍕",
+    cta: "Angebot sichern"
+  },
+  {
+    subject: "❄️ Saisonale Highlights bei Pizza Hood!",
+    preview: "Die besten Gerichte zur richtigen Jahreszeit – jetzt bestellen!",
+    body: "Liebe {{name}},\n\ndie neue Saison bringt neue Geschmackserlebnisse! 🌿\n\nWir haben für Sie saisonale Spezialitäten zusammengestellt, die perfekt zur aktuellen Jahreszeit passen. Frische Zutaten, einzigartige Kombinationen – genau das, was Sie jetzt brauchen!\n\nLassen Sie sich verwöhnen.\n\nHerzliche Grüße\nIhr Pizza Hood Team 🍕",
+    cta: "Saisonales entdecken"
+  },
+  {
+    subject: "🎁 Danke für Ihre Treue – Ein Geschenk von Pizza Hood!",
+    preview: "Als treuer Kunde haben Sie sich etwas Besonderes verdient!",
+    body: "Liebe {{name}},\n\nwir möchten uns bei Ihnen für Ihre tolle Treue bedanken! 🙏\n\nAls kleines Dankeschön haben wir ein besonderes Angebot nur für Sie. Sie sind für uns nicht nur ein Kunde – Sie sind Teil der Pizza Hood Familie!\n\nDanke, dass Sie bei uns sind. Genießen Sie Ihr Angebot!\n\nMit herzlichen Grüßen\nIhr Pizza Hood Team 🍕",
+    cta: "Treue-Angebot einlösen"
+  },
+  {
+    subject: "📣 Wichtige Information von Pizza Hood Gescher",
+    preview: "Neue Öffnungszeiten und aktuelle Infos für Sie!",
+    body: "Liebe {{name}},\n\nwir möchten Sie über aktuelle Neuigkeiten bei Pizza Hood Gescher informieren.\n\n🕐 Unsere Öffnungszeiten:\nDienstag – Donnerstag: 16:30 – 22:00 Uhr\nFreitag – Samstag: 14:00 – 23:00 Uhr\nSonntag & Feiertage: 12:00 – 22:00 Uhr\nMontag: Ruhetag\n\nSie erreichen uns unter: Borkner Damm 18, 48712 Gescher\n\nWir freuen uns auf Ihren Besuch!\nIhr Pizza Hood Team 🍕",
+    cta: "Online bestellen"
+  }
+];
+
+function applyTemplate(idx) {
+  var t = TEMPLATES[idx];
+  if (!t) return;
+  document.getElementById("subject").value = t.subject;
+  document.getElementById("previewText").value = t.preview;
+  document.getElementById("body").value = t.body;
+  document.getElementById("ctaText").value = t.cta;
+  updatePreview();
+  showToast("Vorlage eingesetzt: " + t.subject.slice(0,40) + "…", true);
+}
 
 // ── Products ──
 function renderProds() {
