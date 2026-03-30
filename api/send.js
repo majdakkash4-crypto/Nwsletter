@@ -12,8 +12,8 @@ export default function handler(req, res) {
   const subject = (req.body || {}).subject;
   const htmlContent = (req.body || {}).htmlContent;
 
-  if (!to || !subject) {
-    res.status(400).json({ error: 'Missing to or subject' });
+  if (!to || !subject || !htmlContent) {
+    res.status(400).json({ error: 'Missing fields' });
     return;
   }
 
@@ -22,10 +22,8 @@ export default function handler(req, res) {
     to: [{ email: to, name: toName }],
     subject: subject,
     htmlContent: htmlContent,
-    headers: { 'X-Mailin-custom': 'custom_value' },
-    params: {},
     trackClicks: false,
-    trackOpens: false || '<p>Test</p>'
+    trackOpens: false
   });
 
   const req2 = https.request({
