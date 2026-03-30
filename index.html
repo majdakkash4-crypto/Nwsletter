@@ -248,7 +248,10 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
           <div class="stat-box"><div class="stat-num" id="statPending">0</div><div class="stat-lbl">Ausstehend</div></div>
         </div>
       </div>
-      <div class="ss"><button class="btn-add" onclick="openAddSub()">+ Abonnent hinzufügen</button></div>
+      <div class="ss" style="display:flex;gap:0.5rem">
+  <button class="btn-add" onclick="openAddSub()" style="flex:1">+ Abonnent hinzufügen</button>
+  <button onclick="deleteAllSubs()" style="background:none;border:1.5px solid var(--red);color:var(--red);padding:0.62rem 0.8rem;border-radius:4px;font-family:var(--head);font-size:0.75rem;font-weight:600;text-transform:uppercase;cursor:pointer;transition:all 0.2s;white-space:nowrap" onmouseover="this.style.background='var(--red)';this.style.color='#fff'" onmouseout="this.style.background='none';this.style.color='var(--red)'">Alle löschen</button>
+</div>
       <div class="sbar"><input type="text" id="searchInput" placeholder="Abonnenten suchen…"/></div>
       <div class="sub-list" id="subList">
         <div class="empty" style="padding:1.5rem"><div class="empty-icon">👥</div><div style="font-size:0.72rem;color:var(--muted);text-align:center">CSV importieren oder<br>Abonnenten hinzufügen</div></div>
@@ -629,6 +632,16 @@ function renderSubs() {
   });
 }
 
+function deleteAllSubs() {
+  if (!subscribers.length) { showToast("Keine Abonnenten vorhanden.", false); return; }
+  if (!confirm("Alle " + subscribers.length + " Abonnenten wirklich löschen? Diese Aktion kann nicht rückgängig gemacht werden.")) return;
+  subscribers = [];
+  dbSet("ph_subs", subscribers);
+  renderSubs(); updateStats(); updateRecip();
+  document.getElementById("sendBtn").disabled = true;
+  showToast("Alle Abonnenten wurden gelöscht.", true);
+}
+
 function delSub(email) {
   if (!confirm("Abonnent loeschen?")) return;
   subscribers = subscribers.filter(function(s){ return s.email !== email; });
@@ -725,7 +738,33 @@ async function handleSend() {
   var ctaHtml   = "<div style=\\\"margin:20px 0\\\"><a href=\\\"https://pizzahood-gescher.de\\\" style=\\\"display:inline-block;background:#c9a227;color:#1c1c1c;padding:10px 24px;border-radius:4px;font-family:sans-serif;font-weight:700;font-size:14px;text-decoration:none;text-transform:uppercase;letter-spacing:1px\\\">" + ctaBtnText + "</a></div>";
 
   function makeHtml(name, email) {
-    return "<!DOCTYPE html><html><head><meta charset=\"UTF-8\"/></head><body style=\"margin:0;padding:0;background:#f8f6f1;font-family:sans-serif\"><table width=\"100%\" cellpadding=\"0\" cellspacing=\"0\"><tr><td align=\"center\" style=\"padding:30px 20px\"><table width=\"600\" cellpadding=\"0\" cellspacing=\"0\" style=\"background:#fff;border-radius:6px;overflow:hidden;\"><tr><td style=\"background:#1c1c1c;padding:20px 30px;border-bottom:3px solid #c9a227\"><span style=\"font-size:22px;font-weight:700;color:#c9a227;text-transform:uppercase;letter-spacing:2px\">Pizza Hood</span><span style=\"display:block;font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px\">Borkner Damm 18 &middot; 48712 Gescher</span></td></tr><tr><td style=\"padding:28px 30px\"><h2 style=\"margin:0 0 16px 0;font-size:20px;color:#1c1c1c\">" + subj + "</h2><div style=\"font-size:14px;line-height:1.75;color:#444\">" + body.replace(/\n/g,"<br>").replace(/\{\{name\}\}/g,name||"") + "</div>" + prodsHtml + promoHtml + ctaHtml + "</td></tr><tr><td style=\"background:#f8f6f1;padding:16px 30px;border-top:1px solid #e0d8c8;text-align:center;font-size:11px;color:#8a8070\">Pizza Hood &middot; Borkner Damm 18 &middot; 48712 Gescher<br/><a href=\"https://www.pizzahood.store/api/unsubscribe?email=" + encodeURIComponent(email || "") + "\" style=\"color:#c9a227\">Abmelden</a></td></tr></table></td></tr></table></body></html>";
+    var parts = [];
+    parts.push('<!DOCTYPE html><html><head><meta charset="UTF-8"/></head>');
+    parts.push('<body style="margin:0;padding:0;background:#f8f6f1;font-family:sans-serif">');
+    parts.push('<table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:30px 20px">');
+    parts.push('<table width="600" cellpadding="0" cellspacing="0" style="background:#fff;border-radius:6px;overflow:hidden;">');
+    // Dark header
+    parts.push('<tr><td style="background:#1c1c1c;padding:20px 30px;border-bottom:3px solid #c9a227">');
+    parts.push('<span style="font-size:22px;font-weight:700;color:#c9a227;text-transform:uppercase;letter-spacing:2px">Pizza Hood</span>');
+    parts.push('<span style="display:block;font-size:11px;color:rgba(255,255,255,0.4);margin-top:4px">Borkner Damm 18 &middot; 48712 Gescher</span>');
+    parts.push('</td></tr>');
+    // Banner image
+    parts.push('<tr><td style="padding:0;line-height:0">');
+    parts.push('<img src="https://raw.githubusercontent.com/majdakkash4-crypto/Nwsletter/main/banner.png" width="600" style="width:100%;max-width:600px;display:block" alt="Pizza Hood Wochentliche Angebote"/>');
+    parts.push('</td></tr>');
+    // Body content
+    parts.push('<tr><td style="padding:28px 30px">');
+    parts.push('<h2 style="margin:0 0 16px 0;font-size:20px;color:#1c1c1c">' + subj + '</h2>');
+    parts.push('<div style="font-size:14px;line-height:1.75;color:#444">' + body.replace(/\n/g,'<br>').replace(/\{\{name\}\}/g, name||'') + '</div>');
+    parts.push(prodsHtml + promoHtml + ctaHtml);
+    parts.push('</td></tr>');
+    // Footer
+    parts.push('<tr><td style="background:#f8f6f1;padding:16px 30px;border-top:1px solid #e0d8c8;text-align:center;font-size:11px;color:#8a8070">');
+    parts.push('Pizza Hood &middot; Borkner Damm 18 &middot; 48712 Gescher<br/>');
+    parts.push('<a href="https://www.pizzahood.store/api/unsubscribe?email=' + encodeURIComponent(email || '') + '" style="color:#c9a227">Abmelden</a>');
+    parts.push('</td></tr>');
+    parts.push('</table></td></tr></table></body></html>');
+    return parts.join('');
   }
 
   var btn = document.getElementById("sendBtn");
