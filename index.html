@@ -186,6 +186,12 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
 .toast.ok{border-left-color:var(--green)}
 .toast.ko{border-left-color:var(--red)}
 
+.prod-sale-wrap{margin-top:4px;display:none}
+.prod-card.sel .prod-sale-wrap{display:block}
+.prod-sale-input{width:100%;border:1.5px solid var(--red);border-radius:3px;padding:2px 5px;font-size:0.65rem;font-family:var(--mono);color:var(--red);background:#fff8f8;text-align:center;outline:none}
+.prod-sale-input::placeholder{color:#ffaaaa}
+.prod-price-old{text-decoration:line-through;color:var(--muted);font-size:0.6rem;font-family:var(--mono)}
+.prod-price-new{color:var(--red);font-weight:700;font-size:0.68rem;font-family:var(--mono)}
 ::-webkit-scrollbar{width:5px}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
 @media(max-width:900px){#authWrap{grid-template-columns:1fr}.auth-left{display:none}.app{grid-template-columns:1fr}.compose-grid{grid-template-columns:1fr}}
 </style>
@@ -355,6 +361,7 @@ var BREVO_KEY = "xkeysib-718dd36b0a0a88b46bc622c0126436cfa919064c19431ec6290be7f
 var subscribers = [];
 var srch = "";
 var selProds = new Set();
+var salePrices = {};
 
 // ── Products ──
 var PRODUCTS = [
@@ -548,14 +555,26 @@ function renderProds() {
   var grid = document.getElementById("prodGrid");
   grid.innerHTML = PRODUCTS.map(function(p){
     var sel = selProds.has(p.id) ? " sel" : "";
+    var saleVal = salePrices[p.id] || "";
     return '<div class="prod-card' + sel + '" data-pid="' + p.id + '">' +
       '<div class="prod-check">&#10003;</div>' +
       '<img class="prod-img" src="' + p.img + '" alt="' + p.name + '" loading="lazy"/>' +
       '<div class="prod-name">' + p.name + '</div>' +
-      '<div class="prod-price">' + p.price + '</div></div>';
+      '<div class="prod-price">' + p.price + '</div>' +
+      '<div class="prod-sale-wrap">' +
+      '<input class="prod-sale-input" type="text" placeholder="Angebotspreis z.B. 5,99 €" data-saleid="' + p.id + '" value="' + saleVal + '" onclick="event.stopPropagation()"/>' +
+      '</div></div>';
   }).join("");
   grid.querySelectorAll(".prod-card").forEach(function(c){
     c.addEventListener("click", function(){ toggleProd(c.dataset.pid); });
+  });
+  grid.querySelectorAll(".prod-sale-input").forEach(function(inp){
+    inp.addEventListener("input", function(e){
+      e.stopPropagation();
+      salePrices[inp.dataset.saleid] = inp.value;
+      updatePreview();
+    });
+    inp.addEventListener("click", function(e){ e.stopPropagation(); });
   });
 }
 
@@ -808,7 +827,7 @@ async function handleSend() {
   if (failed === 0) showToast("Newsletter an " + sent + " Empfaenger versandt!", true);
   else { showToast(sent + " versandt, " + failed + " fehlgeschlagen. Fehler: " + (lastError||"unbekannt"), false); console.error("Last error:", lastError); }
   ["subject","body","previewText","promoCode","ctaText"].forEach(function(id){ document.getElementById(id).value = ""; });
-  selProds.clear(); renderProds(); updatePreview();
+  selProds.clear(); salePrices = {}; renderProds(); updatePreview();
 }
 
 // ── History ──
