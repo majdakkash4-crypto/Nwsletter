@@ -21,7 +21,11 @@ export default function handler(req, res) {
     sender: { name: 'Pizza Hood Gescher', email: 'suherato1@hotmail.de' },
     to: [{ email: to, name: toName }],
     subject: subject,
-    htmlContent: htmlContent || '<p>Test</p>'
+    htmlContent: htmlContent,
+    headers: { 'X-Mailin-custom': 'custom_value' },
+    params: {},
+    trackClicks: false,
+    trackOpens: false || '<p>Test</p>'
   });
 
   const req2 = https.request({
