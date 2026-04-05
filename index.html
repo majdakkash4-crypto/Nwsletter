@@ -1295,12 +1295,26 @@ document.addEventListener("DOMContentLoaded", function() {
       if (!file) return;
       var reader = new FileReader();
       reader.onload = function(ev) {
-        emailImageBase64 = ev.target.result;
-        var preview = document.getElementById("emailImagePreview");
-        var text = document.getElementById("imgUploadText");
-        if (preview) { preview.src = emailImageBase64; preview.style.display = "block"; }
-        if (text) text.textContent = "✓ " + file.name;
-        updatePreview();
+        // Compress image using canvas before storing
+        var img = new Image();
+        img.onload = function() {
+          var canvas = document.createElement("canvas");
+          var MAX_W = 600, MAX_H = 400;
+          var w = img.width, h = img.height;
+          if (w > MAX_W) { h = Math.round(h * MAX_W / w); w = MAX_W; }
+          if (h > MAX_H) { w = Math.round(w * MAX_H / h); h = MAX_H; }
+          canvas.width = w; canvas.height = h;
+          canvas.getContext("2d").drawImage(img, 0, 0, w, h);
+          // Compress to JPEG quality 0.7
+          emailImageBase64 = canvas.toDataURL("image/jpeg", 0.7);
+          var sizeKB = Math.round(emailImageBase64.length * 0.75 / 1024);
+          var preview = document.getElementById("emailImagePreview");
+          var text = document.getElementById("imgUploadText");
+          if (preview) { preview.src = emailImageBase64; preview.style.display = "block"; }
+          if (text) text.textContent = "✓ " + file.name + " (" + sizeKB + " KB)";
+          updatePreview();
+        };
+        img.src = ev.target.result;
       };
       reader.readAsDataURL(file);
     });
