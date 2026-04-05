@@ -354,9 +354,9 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
           </div>
         </div>
       </div>
-      <div style="padding:0 2rem 1.5rem">
+      <div style="padding:0 2rem 1.5rem" id="sendBtnWrap">
         <button class="btn-send" id="sendBtn" onclick="handleSend()" disabled style="width:100%">Newsletter versenden</button>
-        <div class="send-note" style="text-align:center;margin-top:0.5rem">Versand via Brevo API · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="703e1507031c15040415023000190a0a11181f1f145e03041f0215">[email&#160;protected]</a></div>
+        <div class="send-note" style="text-align:center;margin-top:0.5rem">Versand via Brevo API · Newsletter@pizzahood.store</div>
       </div>
       <div class="panel" id="panel-history"><div id="historyContent"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Kein Versandverlauf</div><div class="empty-text">Sobald Sie einen Newsletter versenden, erscheint er hier.</div></div></div></div>
       <div class="panel" id="panel-dsgvo">
@@ -737,6 +737,9 @@ document.addEventListener("DOMContentLoaded", function() {
       t.classList.add("active");
       document.getElementById("panel-" + t.dataset.tab).classList.add("active");
       if (t.dataset.tab === "history") renderHist();
+      // Show send button only on compose tab
+      var wrap = document.getElementById("sendBtnWrap");
+      if (wrap) wrap.style.display = t.dataset.tab === "compose" ? "block" : "none";
     });
   });
   document.querySelectorAll(".modal-overlay").forEach(function(m){
