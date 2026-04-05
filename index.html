@@ -1081,7 +1081,7 @@ async function handleSend() {
     parts.push('<tr><td style="background:#f8f6f1;padding:16px 30px;border-top:1px solid #e0d8c8;text-align:center;font-size:11px;color:#8a8070">');
     parts.push('<table width="100%" cellpadding="0" cellspacing="0">');
     parts.push('<tr><td style="text-align:center;padding:8px 0 12px">');
-    parts.push('<img src="https://raw.githubusercontent.com/majdakkash4-crypto/Nwsletter/main/banner.png" width="120" style="width:120px;opacity:0.7" alt="Pizza Hood"/>');
+    parts.push('<span style="font-family:sans-serif;font-size:24px;font-weight:900;color:#c9a227;letter-spacing:2px">&#127829; PIZZA HOOD</span>');
     parts.push('</td></tr>');
     parts.push('<tr><td style="text-align:center">');
     parts.push('<strong style="font-family:sans-serif;font-size:13px;color:#1c1c1c">Pizza Hood Gescher</strong><br/>');
@@ -1272,12 +1272,23 @@ function getBundleHtml() {
   var active = bundles.filter(function(b){ return b.items.length > 0 && b.price; });
   if (!active.length) return "";
   var rows = active.map(function(b){
-    var names = b.items.map(function(id){ var p = PRODUCTS.find(function(p){ return p.id===id; }); return p ? p.name : ""; }).filter(Boolean);
+    var prods = b.items.map(function(id){ return PRODUCTS.find(function(p){ return p.id===id; }); }).filter(Boolean);
     var bundleTitle = b.name || ("Bundle " + (active.indexOf(b)+1));
-    return '<tr><td style="padding:8px 0;border-bottom:1px solid #ffe8cc;font-size:13px;color:#333"><strong style="color:#e67e22">' + bundleTitle + ':</strong> ' +
-      names.join(" + ") + '</td>' +
-      '<td style="padding:8px 0;border-bottom:1px solid #ffe8cc;text-align:right;white-space:nowrap">' +
-      '<span style="color:#e67e22;font-weight:700;font-size:15px">' + b.price + '</span></td></tr>';
+    // Product images row
+    var imgCells = prods.map(function(p){
+      return '<td style="text-align:center;padding:4px;width:' + Math.floor(100/Math.min(prods.length,3)) + '%">' +
+        '<img src="' + p.img + '" width="120" style="width:120px;height:80px;object-fit:cover;border-radius:6px;display:block;margin:0 auto"/>' +
+        '<div style="font-size:11px;color:#333;margin-top:4px;font-weight:600">' + p.name + '</div>' +
+        '</td>';
+    }).join('');
+    return '<tr><td colspan="2" style="padding:12px 0 4px">' +
+      '<div style="font-size:14px;font-weight:700;color:#e67e22;margin-bottom:8px">&#127873; ' + bundleTitle + '</div>' +
+      '<table width="100%" cellpadding="0" cellspacing="0"><tr>' + imgCells + '</tr></table>' +
+      '<div style="display:flex;align-items:center;justify-content:center;gap:8px;margin-top:8px;padding:8px;background:#fff3e0;border-radius:6px">' +
+      '<span style="font-size:13px;color:#333">' + prods.map(function(p){return p.name;}).join(' + ') + '</span>' +
+      '<span style="font-size:18px;font-weight:900;color:#e67e22">' + b.price + '</span>' +
+      '</div>' +
+      '</td></tr><tr><td colspan="2" style="padding:0 0 12px"><hr style="border:none;border-top:1px dashed #ffe8cc;margin:0"/></td></tr>';
   }).join("");
   return '<div style="margin:16px 0;padding:14px;background:#fff9f0;border:1px solid #f0a040;border-radius:6px">' +
     '<strong style="font-size:13px;color:#e67e22;display:block;margin-bottom:10px">🎁 Bundle-Angebote:</strong>' +
