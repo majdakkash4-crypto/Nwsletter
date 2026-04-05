@@ -18,7 +18,7 @@ export default function handler(req, res) {
   }
 
   const payload = JSON.stringify({
-    sender: { name: 'Pizza Hood Gescher', email: 'suherato1@hotmail.de' },
+    sender: { name: 'Pizza Hood Gescher', email: 'Newsletter@pizzahood.store' },
     to: [{ email: to, name: toName }],
     subject: subject,
     htmlContent: htmlContent,
