@@ -186,6 +186,20 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
 .toast.ok{border-left-color:var(--green)}
 .toast.ko{border-left-color:var(--red)}
 
+.bundle-wrap{background:var(--surface);border:1.5px solid var(--gold);border-radius:6px;padding:1rem;margin-bottom:0.5rem}
+.bundle-row{display:flex;gap:0.5rem;align-items:center;margin-bottom:0.5rem;flex-wrap:wrap}
+.bundle-select{flex:1;min-width:120px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:0.4rem 0.6rem;font-size:0.78rem;font-family:var(--body);outline:none;color:var(--dark)}
+.bundle-select:focus{border-color:var(--gold)}
+.bundle-price{width:110px;background:var(--paper);border:1.5px solid var(--border);border-radius:4px;padding:0.4rem 0.6rem;font-size:0.78rem;font-family:var(--mono);outline:none;color:var(--dark)}
+.bundle-price:focus{border-color:var(--gold)}
+.bundle-del{background:none;border:1px solid var(--red);color:var(--red);border-radius:3px;padding:0.25rem 0.5rem;cursor:pointer;font-size:0.7rem;white-space:nowrap}
+.bundle-del:hover{background:var(--red);color:#fff}
+.btn-add-bundle{background:none;border:1.5px dashed var(--gold);color:var(--gold);border-radius:4px;padding:0.4rem 0.8rem;font-size:0.75rem;font-family:var(--head);font-weight:600;cursor:pointer;text-transform:uppercase;letter-spacing:1px;width:100%;transition:all 0.15s}
+.btn-add-bundle:hover{background:var(--gold-dim)}
+.img-upload-wrap{border:2px dashed var(--border);border-radius:4px;padding:0.8rem;text-align:center;cursor:pointer;transition:all 0.2s;font-size:0.78rem;color:var(--muted);position:relative}
+.img-upload-wrap:hover{border-color:var(--gold);color:var(--gold)}
+.img-upload-wrap input{display:none}
+.img-preview{width:100%;max-height:120px;object-fit:cover;border-radius:4px;margin-top:0.5rem;display:none}
 .template-wrap{margin-bottom:0.8rem}
 .template-label{font-family:var(--mono);font-size:0.57rem;text-transform:uppercase;letter-spacing:2.5px;color:var(--muted);margin-bottom:0.4rem;display:block}
 .template-btns{display:flex;flex-wrap:wrap;gap:0.4rem}
@@ -296,6 +310,29 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
               <div><div class="sh">Aktionscode (optional)</div><input type="text" class="ci" id="promoCode" placeholder="z.B. PIZZA20"/></div>
               <div><div class="sh">Button-Text</div><input type="text" class="ci" id="ctaText" placeholder="Jetzt bestellen"/></div>
             </div>
+            <div>
+              <div class="sh">🎁 Bundle-Angebote (z.B. Pizza + Getränk)</div>
+              <div class="bundle-wrap">
+                <div id="bundleItems"></div>
+                <button class="btn-add-bundle" onclick="addBundleItem()">+ Bundle hinzufügen</button>
+              </div>
+            </div>
+            <div>
+              <div class="sh">📷 Bild in E-Mail einfügen (optional)</div>
+              <label class="img-upload-wrap" id="imgUploadLabel">
+                <span id="imgUploadText">📷 Klicken oder Bild hier ablegen</span>
+                <input type="file" id="emailImageInput" accept="image/*"/>
+                <img id="emailImagePreview" class="img-preview" alt="Vorschau"/>
+              </label>
+              <div style="display:flex;gap:0.4rem;margin-top:0.4rem">
+                <select class="ci" id="imgPosition" style="font-size:0.78rem;padding:0.4rem">
+                  <option value="top">Bild oben (unter Banner)</option>
+                  <option value="middle">Bild in der Mitte</option>
+                  <option value="bottom">Bild unten (über Footer)</option>
+                </select>
+                <button onclick="clearEmailImage()" style="background:none;border:1px solid var(--red);color:var(--red);border-radius:4px;padding:0.4rem 0.7rem;cursor:pointer;font-size:0.72rem;white-space:nowrap">✕ Bild entfernen</button>
+              </div>
+            </div>
           </div>
           <div class="cr">
             <div><div class="sh">Empfänger</div><div class="ro-wrap" id="recipientOptions"><label class="ro sel"><input type="radio" name="r" value="all" checked/>Alle (mit Einwilligung)<span class="oc">0</span></label></div></div>
@@ -319,7 +356,7 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
       </div>
       <div style="padding:0 2rem 1.5rem">
         <button class="btn-send" id="sendBtn" onclick="handleSend()" disabled style="width:100%">Newsletter versenden</button>
-        <div class="send-note" style="text-align:center;margin-top:0.5rem">Versand via Brevo API · Newsletter@pizzahood.store</div>
+        <div class="send-note" style="text-align:center;margin-top:0.5rem">Versand via Brevo API · <a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="703e1507031c15040415023000190a0a11181f1f145e03041f0215">[email&#160;protected]</a></div>
       </div>
       <div class="panel" id="panel-history"><div id="historyContent"><div class="empty"><div class="empty-icon">📋</div><div class="empty-title">Kein Versandverlauf</div><div class="empty-text">Sobald Sie einen Newsletter versenden, erscheint er hier.</div></div></div></div>
       <div class="panel" id="panel-dsgvo">
@@ -371,7 +408,7 @@ textarea.ci{resize:vertical;min-height:130px;line-height:1.65}
 
 <div class="toast" id="toast"></div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script>
 // ── Config ──
 var ADMIN = { email: "info@pizzahood-gescher.de", name: "Pizza Hood Admin", pass: "PizzaHood2024!" };
 var BREVO_KEY = "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";
@@ -982,6 +1019,13 @@ async function handleSend() {
   if (!recs.length) { showToast("Keine Empfaenger mit Einwilligung.", false); return; }
 
   var sp = Array.from(selProds).map(function(id){ return PRODUCTS.find(function(p){ return p.id===id; }); }).filter(Boolean);
+  var bundleHtml = getBundleHtml();
+  var imgPos = document.getElementById("imgPosition") ? document.getElementById("imgPosition").value : "top";
+  var customImgHtml = getCustomImageHtml();
+  var imgTop    = imgPos === "top"    ? customImgHtml : "";
+  var imgMiddle = imgPos === "middle" ? customImgHtml : "";
+  var imgBottom = imgPos === "bottom" ? customImgHtml : "";
+
   var prodsHtml = sp.length ? (function(){
     var cards = sp.map(function(p){
       var sale = salePrices[p.id] ? salePrices[p.id].trim() : "";
@@ -1031,12 +1075,29 @@ async function handleSend() {
     parts.push('<tr><td style="padding:28px 30px">');
     parts.push('<h2 style="margin:0 0 16px 0;font-size:20px;color:#1c1c1c">' + subj + '</h2>');
     parts.push('<div style="font-size:14px;line-height:1.75;color:#444">' + body.replace(/\n/g,'<br>').replace(/\{\{name\}\}/g, name||'') + '</div>');
-    parts.push(prodsHtml + promoHtml + ctaHtml);
+    parts.push(imgTop + prodsHtml + bundleHtml + imgMiddle + promoHtml + ctaHtml + imgBottom);
     parts.push('</td></tr>');
     // Footer
     parts.push('<tr><td style="background:#f8f6f1;padding:16px 30px;border-top:1px solid #e0d8c8;text-align:center;font-size:11px;color:#8a8070">');
-    parts.push('Pizza Hood &middot; Borkner Damm 18 &middot; 48712 Gescher<br/>');
-    parts.push('<a href="https://www.pizzahood.store/api/unsubscribe?email=' + encodeURIComponent(email || '') + '" style="color:#c9a227">Abmelden</a>');
+    parts.push('<table width="100%" cellpadding="0" cellspacing="0">');
+    parts.push('<tr><td style="text-align:center;padding:8px 0 12px">');
+    parts.push('<img src="https://raw.githubusercontent.com/majdakkash4-crypto/Nwsletter/main/banner.png" width="120" style="width:120px;opacity:0.7" alt="Pizza Hood"/>');
+    parts.push('</td></tr>');
+    parts.push('<tr><td style="text-align:center">');
+    parts.push('<strong style="font-family:sans-serif;font-size:13px;color:#1c1c1c">Pizza Hood Gescher</strong><br/>');
+    parts.push('<span style="font-size:11px;color:#8a8070">Borkner Damm 18 &middot; 48712 Gescher</span><br/>');
+    parts.push('<span style="font-size:11px;color:#8a8070">Di&ndash;Do: 16:30&ndash;22:00 &middot; Fr&ndash;Sa: 14:00&ndash;23:00 &middot; So: 12:00&ndash;22:00</span><br/>');
+    parts.push('<span style="font-size:11px;color:#8a8070">Tel: 02542 / XXXXXX &middot; </span>');
+    parts.push('<a href="https://pizzahood-gescher.de" style="font-size:11px;color:#c9a227;text-decoration:none">pizzahood-gescher.de</a>');
+    parts.push('</td></tr>');
+    parts.push('<tr><td style="text-align:center;padding:12px 0 4px;border-top:1px solid #e0d8c8;margin-top:12px">');
+    parts.push('<span style="font-size:10px;color:#aaa">Sie erhalten diesen Newsletter weil Sie sich angemeldet haben. </span>');
+    parts.push('<a href="https://www.pizzahood.store/api/unsubscribe?email=' + encodeURIComponent(email || '') + '" style="font-size:10px;color:#c9a227;text-decoration:none">Newsletter abbestellen</a>');
+    parts.push('</td></tr>');
+    parts.push('<tr><td style="text-align:center;padding:4px 0 0">');
+    parts.push('<span style="font-size:9px;color:#ccc">gem&auml;&szlig; DSGVO Art. 6 Abs. 1 lit. a &middot; Abmeldung jederzeit m&ouml;glich</span>');
+    parts.push('</td></tr>');
+    parts.push('</table>');
     parts.push('</td></tr>');
     parts.push('</table></td></tr></table></body></html>');
     return parts.join('');
@@ -1082,7 +1143,7 @@ async function handleSend() {
   if (failed === 0) showToast("Newsletter an " + sent + " Empfaenger versandt!", true);
   else { showToast(sent + " versandt, " + failed + " fehlgeschlagen. Fehler: " + (lastError||"unbekannt"), false); console.error("Last error:", lastError); }
   ["subject","body","previewText","promoCode","ctaText"].forEach(function(id){ document.getElementById(id).value = ""; });
-  selProds.clear(); salePrices = {}; renderProds(); updatePreview();
+  selProds.clear(); salePrices = {}; bundles = []; emailImageBase64 = ''; renderProds(); renderBundles(); clearEmailImage(); updatePreview();
 }
 
 // ── History ──
@@ -1116,11 +1177,150 @@ function dsgvoDelete() {
 
 // ── Toast ──
 function showToast(msg, ok) {
-  var t = document.getElementById("toast");
+  var t =document.getElementById("toast");
   t.textContent = msg;
   t.className = "toast show " + (ok===false ? "ko" : "ok");
   clearTimeout(t._t);
   t._t = setTimeout(function(){ t.classList.remove("show"); }, 4000);
+}
+
+// ── Bundle Creator ──
+var bundles = [];
+
+function addBundleItem() {
+  var id = Date.now();
+  bundles.push({ id: id, items: [], price: "" });
+  renderBundles();
+}
+
+function removeBundleItem(id) {
+  bundles = bundles.filter(function(b){ return b.id !== id; });
+  renderBundles();
+  updatePreview();
+}
+
+function renderBundles() {
+  var container = document.getElementById("bundleItems");
+  if (!container) return;
+  if (!bundles.length) { container.innerHTML = ""; return; }
+  var cats = [];
+  PRODUCTS.forEach(function(p){ if (cats.indexOf(p.cat) < 0) cats.push(p.cat); });
+  var out = "";
+  bundles.forEach(function(b, bi) {
+    var selectedNames = b.items.map(function(id){
+      var p = PRODUCTS.find(function(q){ return q.id===id; });
+      return p ? p.name : "";
+    }).filter(Boolean);
+    out += '<div style="margin-bottom:1rem;border:1px solid #e0d8c8;border-radius:6px;overflow:hidden">';
+    out += '<div style="display:flex;align-items:center;gap:0.5rem;padding:0.6rem 0.8rem;background:#f8f6f1;border-bottom:1px solid #e0d8c8;flex-wrap:wrap">';
+    out += '<input type="text" value="' + (b.name || ("Bundle " + (bi+1))) + '" placeholder="Bundle benennen…" data-bid="' + b.id + '" class="bundle-name-input" oninput="updateBundleName(' + b.id + ', this.value)" style="flex:1;min-width:100px;background:transparent;border:none;border-bottom:1.5px solid #c9a227;font-family:var(--head);font-size:0.85rem;font-weight:700;color:#c9a227;outline:none;padding:2px 4px"/>';
+    out += '<input class="bundle-price" type="text" placeholder="Bundle-Preis z.B. 10,00 €" value="' + b.price + '" oninput="updateBundlePrice(' + b.id + ',this.value)" onchange="updatePreview()" style="width:150px"/>';
+    out += '<button class="bundle-del" onclick="removeBundleItem(' + b.id + ')">&#10005;</button>';
+    out += '</div>';
+    if (selectedNames.length) {
+      out += '<div style="padding:0.4rem 0.8rem;background:#fffbf0;border-bottom:1px solid #e0d8c8;font-size:0.72rem;color:#7a5800">&#10003; ' + selectedNames.join(" + ") + '</div>';
+    }
+    out += '<div style="max-height:200px;overflow-y:auto;padding:0.5rem 0.8rem">';
+    cats.forEach(function(cat){
+      var prods = PRODUCTS.filter(function(p){ return p.cat === cat; });
+      out += '<div style="font-size:0.58rem;text-transform:uppercase;letter-spacing:2px;color:#8a8070;padding:3px 0;margin-top:4px">' + cat + '</div>';
+      prods.forEach(function(p){
+        var chk = b.items.indexOf(p.id) >= 0 ? "checked" : "";
+        out += '<label style="display:flex;align-items:center;gap:0.4rem;padding:2px 4px;cursor:pointer;font-size:0.72rem;border-radius:3px">';
+        out += '<input type="checkbox" ' + chk + ' data-bid="' + b.id + '" data-pid="' + p.id + '" class="bundle-chk" style="accent-color:#c9a227;cursor:pointer"/>';
+        out += '<span>' + p.name + '</span>';
+        out += '<span style="margin-left:auto;color:#c9a227;font-size:0.65rem">' + p.price + '</span>';
+        out += '</label>';
+      });
+    });
+    out += '</div></div>';
+  });
+  container.innerHTML = out;
+  container.querySelectorAll(".bundle-chk").forEach(function(cb) {
+    cb.addEventListener("change", function() {
+      toggleBundleProd(parseInt(cb.dataset.bid), cb.dataset.pid, cb.checked);
+    });
+  });
+}
+
+
+function toggleBundleProd(bundleId, prodId, checked) {
+  var b = bundles.find(function(x){ return x.id === bundleId; });
+  if (!b) return;
+  if (checked && b.items.indexOf(prodId) < 0) b.items.push(prodId);
+  if (!checked) b.items = b.items.filter(function(id){ return id !== prodId; });
+  renderBundles();
+  updatePreview();
+}
+
+function updateBundleItems(id, sel) {
+  var b = bundles.find(function(x){ return x.id === id; });
+  if (b) { b.items = Array.from(sel.selectedOptions).map(function(o){ return o.value; }); updatePreview(); }
+}
+
+function updateBundlePrice(id, val) {
+  var b = bundles.find(function(x){ return x.id === id; });
+  if (b) b.price = val;
+}
+
+function updateBundleName(id, val) {
+  var b = bundles.find(function(x){ return x.id === id; });
+  if (b) { b.name = val; updatePreview(); }
+}
+
+function getBundleHtml() {
+  var active = bundles.filter(function(b){ return b.items.length > 0 && b.price; });
+  if (!active.length) return "";
+  var rows = active.map(function(b){
+    var names = b.items.map(function(id){ var p = PRODUCTS.find(function(p){ return p.id===id; }); return p ? p.name : ""; }).filter(Boolean);
+    var bundleTitle = b.name || ("Bundle " + (active.indexOf(b)+1));
+    return '<tr><td style="padding:8px 0;border-bottom:1px solid #ffe8cc;font-size:13px;color:#333"><strong style="color:#e67e22">' + bundleTitle + ':</strong> ' +
+      names.join(" + ") + '</td>' +
+      '<td style="padding:8px 0;border-bottom:1px solid #ffe8cc;text-align:right;white-space:nowrap">' +
+      '<span style="color:#e67e22;font-weight:700;font-size:15px">' + b.price + '</span></td></tr>';
+  }).join("");
+  return '<div style="margin:16px 0;padding:14px;background:#fff9f0;border:1px solid #f0a040;border-radius:6px">' +
+    '<strong style="font-size:13px;color:#e67e22;display:block;margin-bottom:10px">🎁 Bundle-Angebote:</strong>' +
+    '<table width="100%" cellpadding="0" cellspacing="0">' + rows + '</table></div>';
+}
+
+// ── Image Upload ──
+var emailImageBase64 = "";
+
+document.addEventListener("DOMContentLoaded", function() {
+  var imgInput = document.getElementById("emailImageInput");
+  if (imgInput) {
+    imgInput.addEventListener("change", function(e) {
+      var file = e.target.files[0];
+      if (!file) return;
+      var reader = new FileReader();
+      reader.onload = function(ev) {
+        emailImageBase64 = ev.target.result;
+        var preview = document.getElementById("emailImagePreview");
+        var text = document.getElementById("imgUploadText");
+        if (preview) { preview.src = emailImageBase64; preview.style.display = "block"; }
+        if (text) text.textContent = "✓ " + file.name;
+        updatePreview();
+      };
+      reader.readAsDataURL(file);
+    });
+  }
+});
+
+function clearEmailImage() {
+  emailImageBase64 = "";
+  var preview = document.getElementById("emailImagePreview");
+  var text = document.getElementById("imgUploadText");
+  var input = document.getElementById("emailImageInput");
+  if (preview) { preview.style.display = "none"; preview.src = ""; }
+  if (text) text.textContent = "📷 Klicken oder Bild hier ablegen";
+  if (input) input.value = "";
+  updatePreview();
+}
+
+function getCustomImageHtml() {
+  if (!emailImageBase64) return "";
+  return '<div style="margin:16px 0;text-align:center"><img src="' + emailImageBase64 + '" style="max-width:100%;border-radius:6px;display:block;margin:0 auto" alt="Angebot"/></div>';
 }
 </script>
 </body>
