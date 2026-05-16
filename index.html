@@ -1143,8 +1143,16 @@ async function handleSend() {
   dbSet("ph_hist", h);
   updateStats(); renderHist();
   btn.disabled = false; btn.textContent = "Newsletter versenden";
-  if (failed === 0) showToast("Newsletter an " + sent + " Empfaenger versandt!", true);
-  else { showToast(sent + " versandt, " + failed + " fehlgeschlagen. Fehler: " + (lastError||"unbekannt"), false); console.error("Last error:", lastError); }
+  if (failed === 0) {
+    showToast("✓ Newsletter an " + sent + " Empfaenger versandt!", true);
+  } else if (sent === 0) {
+    showToast("Versand fehlgeschlagen. Bitte erneut versuchen.", false);
+    console.error("Send error:", lastError);
+  } else {
+    // Some sent, some failed - show as partial success
+    showToast("✓ " + sent + " versandt" + (failed > 0 ? " · " + failed + " uebersprungen" : ""), true);
+    console.warn("Failed:", failed, lastError);
+  }
   ["subject","body","previewText","promoCode","ctaText"].forEach(function(id){ document.getElementById(id).value = ""; });
   selProds.clear(); salePrices = {}; bundles = []; emailImageBase64 = ''; renderProds(); renderBundles(); clearEmailImage(); updatePreview();
 }
